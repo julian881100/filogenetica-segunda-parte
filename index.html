@@ -1835,7 +1835,6 @@ ACGTTTTCAGTTTTATGAGGTAAAGCGAATGATTAGAGGCCTGGGGGTTGAAACAACCTT`;
 
 <!-- SUPABASE + EXAMEN LOGIC -->
 <script>
-(function(){
 // === CONFIG ===
 var SUPABASE_URL = 'https://rrowohxnvduvecfthtir.supabase.co';
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyb3dvaHhudmR1dmVjZnRodGlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNTY2NjgsImV4cCI6MjA5MzczMjY2OH0.MAaQtEReyL82QiLsdkBuW1S0MtrPqcA1BErrYpPECRw';
@@ -1851,59 +1850,32 @@ var examState = {
   started: false
 };
 
-// Helper para llamadas a Supabase REST
 function supabaseQuery(table, options) {
   var url = SUPABASE_URL + '/rest/v1/' + table;
   if (options.select) url += '?select=' + options.select;
   if (options.eq) options.eq.forEach(function(eq) { url += '&' + eq.col + '=eq.' + encodeURIComponent(eq.val); });
   if (options.limit) url += '&limit=' + options.limit;
-  return fetch(url, {
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_KEY,
-      'Content-Type': 'application/json'
-    }
-  }).then(function(r) { return r.json(); });
+  return fetch(url, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }).then(function(r) { return r.json(); });
 }
-
 function supabaseInsert(table, body) {
-  return fetch(SUPABASE_URL + '/rest/v1/' + table, {
-    method: 'POST',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_KEY,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation'
-    },
-    body: JSON.stringify(body)
-  }).then(function(r) { return r.json(); });
+  return fetch(SUPABASE_URL + '/rest/v1/' + table, { method: 'POST', headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' }, body: JSON.stringify(body) }).then(function(r) { return r.json(); });
 }
-
 function supabaseUpdate(table, body, eqCol, eqVal) {
-  return fetch(SUPABASE_URL + '/rest/v1/' + table + '?' + eqCol + '=eq.' + encodeURIComponent(eqVal), {
-    method: 'PATCH',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_KEY,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation'
-    },
-    body: JSON.stringify(body)
-  }).then(function(r) { return r.text(); });
+  return fetch(SUPABASE_URL + '/rest/v1/' + table + '?' + eqCol + '=eq.' + encodeURIComponent(eqVal), { method: 'PATCH', headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' }, body: JSON.stringify(body) }).then(function(r) { return r.text(); });
 }
 
 // === PANTALLA COMPLETA (no requerida en esta parte) ===
-const loginContainer = document.getElementById('login-container');
-const examHeader = document.getElementById('exam-header');
-const pageContent = document.getElementById('page-content');
+var loginContainer = document.getElementById('login-container');
+var examHeaderBar = document.getElementById('exam-header');
+var pageContent = document.getElementById('page-content');
 
 loginContainer.classList.remove('hidden');
 
 // === LOGIN ===
-const cedulaInput = document.getElementById('student-cedula');
-const validateBtn = document.getElementById('validate-btn');
-const loginError = document.getElementById('login-error');
-const studentDisplay = document.getElementById('student-display');
+var cedulaInput = document.getElementById('student-cedula');
+var validateBtn = document.getElementById('validate-btn');
+var loginError = document.getElementById('login-error');
+var studentDisplay = document.getElementById('student-display');
 
 async function validateStudent(cedula) {
   try {
@@ -1943,7 +1915,7 @@ cedulaInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') validate
 
 // === MOSTRAR EXAMEN ===
 function showExam() {
-  examHeader.classList.remove('hidden');
+  examHeaderBar.classList.remove('hidden');
   pageContent.classList.remove('hidden');
   examState.started = true;
   startTimer();
@@ -2000,7 +1972,6 @@ async function submitResults() {
 }
 
 // === INICIO ===
-})();
 </script>
 </body>
 </html>
