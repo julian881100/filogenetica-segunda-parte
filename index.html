@@ -220,16 +220,6 @@
 </head>
 <body>
 
-<!-- OVERLAY PANTALLA COMPLETA -->
-<div id="fullscreen-overlay" class="exam-overlay hidden">
-  <div class="exam-overlay-card glass">
-    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ff5b60" stroke-width="2"><path d="M3 12.5a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
-    <h2>PANTALLA COMPLETA REQUERIDA</h2>
-    <p>Este parcial requiere pantalla completa. Al salir, se reporta una advertencia.</p>
-    <button id="enter-fullscreen-btn" class="exam-btn exam-btn-primary">Activar Pantalla Completa</button>
-  </div>
-</div>
-
 <!-- LOGIN -->
 <div id="login-container" class="exam-login flex-center">
   <!-- FILOGRAMA ANIMADO DE FONDO -->
@@ -1902,34 +1892,12 @@ function supabaseUpdate(table, body, eqCol, eqVal) {
   }).then(function(r) { return r.text(); });
 }
 
-// === PANTALLA COMPLETA ===
-const fsOverlay = document.getElementById('fullscreen-overlay');
-const fsBtn = document.getElementById('enter-fullscreen-btn');
+// === PANTALLA COMPLETA (no requerida en esta parte) ===
 const loginContainer = document.getElementById('login-container');
 const examHeader = document.getElementById('exam-header');
 const pageContent = document.getElementById('page-content');
 
-function enterFullscreen() {
-  const el = document.documentElement;
-  if (el.requestFullscreen) el.requestFullscreen();
-  else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-  else if (el.msRequestFullscreen) el.msRequestFullscreen();
-}
-fsBtn.addEventListener('click', () => { enterFullscreen(); });
-
-document.addEventListener('fullscreenchange', () => {
-  if (document.fullscreenElement) {
-    fsOverlay.classList.add('hidden');
-    if (examState.started) showExam();
-    else loginContainer.classList.remove('hidden');
-  } else {
-    if (examState.started) {
-      fsOverlay.classList.remove('hidden');
-      examState.warnings++;
-      updateWarnings();
-    }
-  }
-});
+loginContainer.classList.remove('hidden');
 
 // === LOGIN ===
 const cedulaInput = document.getElementById('student-cedula');
@@ -1961,7 +1929,7 @@ validateBtn.addEventListener('click', async () => {
     examState.studentCedula = cedula;
     examState.studentName = result.student.full_name;
     examState.studentId = result.student.id;
-    studentDisplay.textContent = 'C.C. ' + cedula;
+    studentDisplay.textContent = examState.studentName + ' — C.C. ' + cedula;
     loginContainer.classList.add('hidden');
     showExam();
   } else {
@@ -2032,7 +2000,6 @@ async function submitResults() {
 }
 
 // === INICIO ===
-fsOverlay.classList.remove('hidden');
 })();
 </script>
 </body>
