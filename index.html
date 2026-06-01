@@ -1963,7 +1963,7 @@ validateBtn.addEventListener('click', async () => {
     examState.studentId = result.student.id;
     studentDisplay.textContent = 'C.C. ' + cedula;
     loginContainer.classList.add('hidden');
-    enterFullscreen();
+    showExam();
   } else {
     loginError.classList.remove('hidden');
     validateBtn.textContent = 'Validar y Comenzar';
@@ -2033,6 +2033,7 @@ async function submitResults() {
 
 // === INICIO ===
 fsOverlay.classList.remove('hidden');
+})();
 </script>
 </body>
 </html>
