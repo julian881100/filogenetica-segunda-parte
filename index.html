@@ -1844,22 +1844,14 @@ ACGTTTTCAGTTTTATGAGGTAAAGCGAATGATTAGAGGCCTGGGGGTTGAAACAACCTT`;
 </script>
 
 <!-- SUPABASE + EXAMEN LOGIC -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+(function(){
 // === CONFIG ===
-const SUPABASE_URL = 'https://rrowohxnvduvecfthtir.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyb3dvaHhudmR1dmVjZnRodGlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNTY2NjgsImV4cCI6MjA5MzczMjY2OH0.MAaQtEReyL82QiLsdkBuW1S0MtrPqcA1BErrYpPECRw';
-const EXAM_DURATION = 2 * 60 * 60; // 2 horas
+var SUPABASE_URL = 'https://rrowohxnvduvecfthtir.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyb3dvaHhudmR1dmVjZnRodGlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNTY2NjgsImV4cCI6MjA5MzczMjY2OH0.MAaQtEReyL82QiLsdkBuW1S0MtrPqcA1BErrYpPECRw';
+var EXAM_DURATION = 2 * 60 * 60;
 
-let supabase = null;
-try { 
-  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  console.log('Supabase inicializado');
-} catch(e) { 
-  console.warn('Supabase no disponible, usando modo local');
-}
-
-let examState = {
+var examState = {
   studentCedula: '',
   studentName: '',
   studentId: null,
@@ -1868,6 +1860,47 @@ let examState = {
   timerInterval: null,
   started: false
 };
+
+// Helper para llamadas a Supabase REST
+function supabaseQuery(table, options) {
+  var url = SUPABASE_URL + '/rest/v1/' + table;
+  if (options.select) url += '?select=' + options.select;
+  if (options.eq) options.eq.forEach(function(eq) { url += '&' + eq.col + '=eq.' + encodeURIComponent(eq.val); });
+  if (options.limit) url += '&limit=' + options.limit;
+  return fetch(url, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json'
+    }
+  }).then(function(r) { return r.json(); });
+}
+
+function supabaseInsert(table, body) {
+  return fetch(SUPABASE_URL + '/rest/v1/' + table, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify(body)
+  }).then(function(r) { return r.json(); });
+}
+
+function supabaseUpdate(table, body, eqCol, eqVal) {
+  return fetch(SUPABASE_URL + '/rest/v1/' + table + '?' + eqCol + '=eq.' + encodeURIComponent(eqVal), {
+    method: 'PATCH',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify(body)
+  }).then(function(r) { return r.text(); });
+}
 
 // === PANTALLA COMPLETA ===
 const fsOverlay = document.getElementById('fullscreen-overlay');
@@ -1905,15 +1938,16 @@ const loginError = document.getElementById('login-error');
 const studentDisplay = document.getElementById('student-display');
 
 async function validateStudent(cedula) {
-  if (supabase) {
-    try {
-      const { data, error } = await supabase.from('students').select('id,full_name,cedula').eq('cedula', cedula.trim()).eq('active', true).maybeSingle();
-      if (error) { console.warn('Supabase error:', error.message); }
-      if (!error && data) return { ok: true, student: data };
-    } catch(e) { console.warn('Supabase fallback', e.message); }
-  }
-  // Modo local: acepta cualquier cédula de 5+ dígitos
-  if (cedula.length >= 5) return { ok: true, student: { cedula, full_name: 'Estudiante ' + cedula } };
+  try {
+    var data = await supabaseQuery('students', {
+      select: 'id,full_name,cedula',
+      eq: [{col:'cedula',val:cedula.trim()},{col:'active',val:'true'}],
+      limit: 1
+    });
+    if (Array.isArray(data) && data.length > 0) return { ok: true, student: data[0] };
+  } catch(e) { console.warn('Error Supabase:', e.message); }
+  // Fallback: acepta cédula de 5+ dígitos
+  if (cedula.length >= 5) return { ok: true, student: { cedula: cedula, full_name: 'Estudiante ' + cedula } };
   return { ok: false };
 }
 
@@ -1972,32 +2006,29 @@ document.addEventListener('visibilitychange', () => {
 
 // === GUARDAR INTENTO ===
 async function saveAttempt() {
-  if (!supabase) return;
   try {
-    const { data, error } = await supabase.from('quiz_attempts').insert({
+    var data = await supabaseInsert('quiz_attempts', {
       student_id: examState.studentId,
       cedula: examState.studentCedula,
       full_name: examState.studentName,
       score: 0,
       finished_by_time: false
-    }).select('id').single();
-    if (error) { console.warn('Error guardando intento:', error); return; }
-    if (data) examState.attemptId = data.id;
-  } catch(e) { console.warn('No se pudo guardar intento', e); }
+    });
+    if (Array.isArray(data) && data.length > 0) examState.attemptId = data[0].id;
+  } catch(e) { console.warn('No se pudo guardar intento', e.message); }
 }
 
 async function submitResults() {
-  if (supabase && examState.attemptId) {
-    try {
-      await supabase.from('quiz_attempts').update({
-        score: 5.0,
-        warnings_count: examState.warnings,
-        time_used_seconds: EXAM_DURATION - examState.timeLeft,
-        finished_at: new Date().toISOString(),
-        quiz_type: 'segunda_parte_pipeline'
-      }).eq('id', examState.attemptId);
-    } catch(e) { console.warn('Error al enviar resultados', e); }
-  }
+  if (!examState.attemptId) return;
+  try {
+    await supabaseUpdate('quiz_attempts', {
+      score: 5.0,
+      warnings_count: examState.warnings,
+      time_used_seconds: EXAM_DURATION - examState.timeLeft,
+      finished_at: new Date().toISOString(),
+      quiz_type: 'segunda_parte_pipeline'
+    }, 'id', examState.attemptId);
+  } catch(e) { console.warn('Error al enviar resultados', e.message); }
 }
 
 // === INICIO ===
