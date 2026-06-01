@@ -1775,8 +1775,8 @@ ACGTTTTCAGTTTTATGAGGTAAAGCGAATGATTAGAGGCCTGGGGGTTGAAACAACCTT`;
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // === CONFIG ===
-const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
-const SUPABASE_KEY = 'YOUR_ANON_KEY';
+const SUPABASE_URL = 'https://rrowohxnvduvecfthtir.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyb3dvaHhudmR1dmVjZnRodGlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNTY2NjgsImV4cCI6MjA5MzczMjY2OH0.MAaQtEReyL82QiLsdkBuW1S0MtrPqcA1BErrYpPECRw';
 const EXAM_DURATION = 2 * 60 * 60; // 2 horas
 
 let supabase = null;
@@ -1829,12 +1829,11 @@ const studentDisplay = document.getElementById('student-display');
 async function validateStudent(cedula) {
   if (supabase) {
     try {
-      const { data, error } = await supabase.from('students').select('*').eq('cedula', cedula.trim()).eq('active', true).single();
-      if (!error && data) return { ok: true, name: data.full_name || data.name || cedula };
-    } catch(e) { console.warn('Supabase fallback'); }
+      const { data, error } = await supabase.from('students').select('id,full_name,cedula').eq('cedula', cedula.trim()).eq('active', true).single();
+      if (!error && data) return { ok: true, student: data };
+    } catch(e) { console.warn('Supabase fallback', e); }
   }
-  // Modo local
-  if (cedula.length >= 5) return { ok: true, name: 'Estudiante ' + cedula };
+  if (cedula.length >= 5) return { ok: true, student: { cedula, full_name: 'Estudiante ' + cedula } };
   return { ok: false };
 }
 
@@ -1846,7 +1845,8 @@ validateBtn.addEventListener('click', async () => {
   const result = await validateStudent(cedula);
   if (result.ok) {
     examState.studentCedula = cedula;
-    examState.studentName = result.name;
+    examState.studentName = result.student.full_name;
+    examState.studentId = result.student.id;
     studentDisplay.textContent = 'C.C. ' + cedula;
     loginContainer.classList.add('hidden');
     enterFullscreen();
@@ -1894,22 +1894,29 @@ document.addEventListener('visibilitychange', () => {
 async function saveAttempt() {
   if (!supabase) return;
   try {
-    const { data } = await supabase.from('quiz_attempts').insert({
+    const { data, error } = await supabase.from('quiz_attempts').insert({
+      student_id: examState.studentId,
       cedula: examState.studentCedula,
-      quiz_type: 'segunda_parte',
-      started_at: new Date().toISOString()
+      full_name: examState.studentName,
+      score: 0,
+      finished_by_time: false
     }).select('id').single();
+    if (error) { console.warn('Error guardando intento:', error); return; }
     if (data) examState.attemptId = data.id;
-  } catch(e) { console.warn('No se pudo guardar intento'); }
+  } catch(e) { console.warn('No se pudo guardar intento', e); }
 }
 
 async function submitResults() {
   if (supabase && examState.attemptId) {
-    await supabase.from('quiz_attempts').update({
-      finished_at: new Date().toISOString(),
-      warnings: examState.warnings,
-      time_used: EXAM_DURATION - examState.timeLeft
-    }).eq('id', examState.attemptId);
+    try {
+      await supabase.from('quiz_attempts').update({
+        score: 5.0,
+        warnings_count: examState.warnings,
+        time_used_seconds: EXAM_DURATION - examState.timeLeft,
+        finished_at: new Date().toISOString(),
+        quiz_type: 'segunda_parte_pipeline'
+      }).eq('id', examState.attemptId);
+    } catch(e) { console.warn('Error al enviar resultados', e); }
   }
 }
 
