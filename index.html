@@ -250,9 +250,9 @@
   <div class="card">
     <h3>1.3 — Sesgos y limitaciones que anticipar en el informe</h3>
     <ul style="margin:12px 0 0 22px;line-height:1.7">
-      <li><strong>Outgroup lejano:</strong> si enraizas con Sordariomycetes o con Eurotiomycetes, el largo de rama del outgroup puede atraer raíces largas (LBA, <em>long-branch attraction</em>) y distorsionar la topología dentro de Didymellaceae. El outgroup óptimo de H₁ es <strong><em>Leptosphaerulina</em></strong> (misma familia, pero fuera del clado H₁).</li>
+      <li><strong>Outgroup lejano:</strong> si enraizas con Sordariomycetes o con Eurotiomycetes, el largo de rama del outgroup puede atraer raíces largas (LBA, <em>long-branch attraction</em>) y distorsionar la topología dentro de Didymellaceae.</li>
       <li><strong>Gen único:</strong> con un solo locus concatenado, no puedes medir discordancia entre genes. Cualquier conclusión sobre monofilia de H₁ es tentativa, necesitas al menos ITS + TEF1 + tubulina para un estudio filogenético robusto de Didymellaceae.</li>
-      <li><strong>Soporte bootstrap vs. PP:</strong> IQ-TREE da soportes UFBoot y SH-aLRT. BEAST da probabilidades posteriores (PP). No son lo mismo. UFBoot ≥ 95% o PP ≥ 0.95 son umbrales de referencia, pero en un solo gen los soportes altos pueden ser artefacto si el modelo está mal especificado.</li>
+      <li><strong>Soporte bootstrap vs. PP:</strong> IQ-TREE da soportes bootstrap y SH-aLRT. BEAST da probabilidades posteriores (PP). No son lo mismo. bootstrap ≥ 95% o PP ≥ 0.95 son umbrales de referencia, pero en un solo gen los soportes altos pueden ser artefacto si el modelo está mal especificado.</li>
     </ul>
   </div>
 </section>
@@ -553,7 +553,7 @@
         <div style="font-size:11px;color:var(--muted);margin-top:2px">IQ-TREE</div>
         <div style="font-size:9px;color:var(--amber);margin-top:4px">-m MFP · -bb 1000</div>
         <div style="font-size:9px;color:var(--primary);margin-top:1px">-o (outgroup)</div>
-        <div style="font-size:9px;color:var(--muted);margin-top:1px">ML + UFBoot + aLRT</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:1px">ML + bootstrap + aLRT</div>
         <div style="font-size:10px;color:var(--amber);margin-top:6px">Entra: alin. recortado</div>
         <div style="font-size:10px;color:var(--amber)">Sale: .treefile</div>
       </div>
@@ -663,7 +663,7 @@
   <div class="worksheet card">
     <h3>Paso 4b — IQ-TREE: árbol ML con bootstrap</h3>
     <p class="small">Ahora corre el árbol completo con el mejor modelo (o dejá que IQ-TREE lo seleccione otra vez con <code>-m MFP</code>) y pide bootstrap. Aquí defines el outgroup.</p>
-    <label>Comando IQ-TREE (ML + UFBoot + outgroup):</label>
+    <label>Comando IQ-TREE (ML + bootstrap + outgroup):</label>
     <textarea class="cmd-area" rows="3" placeholder="iqtree2 -s … -m … -bb 1000 -o …"></textarea>
   </div>
 
@@ -692,7 +692,7 @@
     <h3>Paso 8 — FigTree: visualización comparativa</h3>
     <p class="small">Cargá ambos árboles (ML de IQ-TREE y bayesiano de TreeAnnotator) y compará los soportes nodales.</p>
     <label>Describe cómo harías la comparación visual:</label>
-    <textarea class="cmd-area" rows="3" placeholder="En FigTree: Archivo > Cargar árbol…&#10;1. Cargar .treefile de IQ-TREE, colorear clados por soporte UFBoot ≥ 95%&#10;2. Cargar .tree de TreeAnnotator, mostrar PP ≥ 0.95 como grosor de rama&#10;3. Comparar nodo por nodo: ¿los mismos clados reciben alto soporte en ambos métodos?"></textarea>
+    <textarea class="cmd-area" rows="3" placeholder="En FigTree: Archivo > Cargar árbol…&#10;1. Cargar .treefile de IQ-TREE, colorear clados por soporte bootstrap ≥ 95%&#10;2. Cargar .tree de TreeAnnotator, mostrar PP ≥ 0.95 como grosor de rama&#10;3. Comparar nodo por nodo: ¿los mismos clados reciben alto soporte en ambos métodos?"></textarea>
   </div>
 
   <!-- PREGUNTAS DE CIERRE -->
@@ -704,7 +704,7 @@
       <li>¿Qué archivo leerías para confirmar el mejor modelo de sustitución elegido por ModelFinder?</li>
       <li>¿Qué archivo leerías para verificar que la cadena MCMC convergió?</li>
       <li>Si en Tracer ves que el ESS de <code>treeHeight</code> es 45, ¿qué haces? ¿Entregas el árbol igual, alargas la cadena o cambias los priores?</li>
-      <li>¿Cómo distingues visualmente en FigTree qué soportes vienen de UFBoot y cuáles de PP bayesiana?</li>
+      <li>¿Cómo distingues visualmente en FigTree qué soportes vienen de bootstrap y cuáles de PP bayesiana?</li>
     </ol>
   </div>
 </section>
