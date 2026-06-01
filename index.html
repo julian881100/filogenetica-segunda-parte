@@ -196,6 +196,24 @@
     @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
     .animate-slide-up{animation:slideUp 0.4s cubic-bezier(0.16,1,0.3,1) forwards}
 
+    /* === FILOGRAMA ANIMADO === */
+    .phylogram-bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;overflow:hidden;opacity:0.25}
+    .phylogram-svg{width:100%;height:100%;object-fit:cover}
+    @keyframes phyloGrowH{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+    .phylo-branch{transform-origin:left center;animation:phyloGrowH 1.6s cubic-bezier(0.16,1,0.3,1) forwards}
+    @keyframes phyloGrowV{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+    .phylo-branch-v{transform-origin:center top;animation:phyloGrowV 0.7s cubic-bezier(0.16,1,0.3,1) forwards}
+    @keyframes phyloLabelFade{from{opacity:0;transform:translateX(-8px)}to{opacity:0.7;transform:translateX(0)}}
+    .phylo-label{font-family:'Inter','Georgia',serif;font-style:italic;dominant-baseline:middle;animation:phyloLabelFade 0.6s ease-out forwards;opacity:0}
+    @keyframes phyloNodeTipAppear{0%{opacity:0;transform:scale(0)}60%{opacity:1;transform:scale(1.2)}100%{opacity:1;transform:scale(1)}}
+    @keyframes phyloLifePulse{0%,100%{opacity:1;filter:drop-shadow(0 0 3px currentColor)}50%{opacity:0.5;filter:drop-shadow(0 0 8px currentColor)}}
+    .phylo-node-tip{transform-origin:center;transform-box:fill-box;animation:phyloNodeTipAppear 0.5s ease-out forwards,phyloLifePulse 2.5s ease-in-out infinite;opacity:0;animation-delay:3s,3.4s;cursor:default}
+    .phylo-t0{animation-delay:0s}.phylo-t1{animation-delay:0.35s}.phylo-t2{animation-delay:0.7s}.phylo-t3{animation-delay:1.05s}.phylo-t4{animation-delay:1.4s}.phylo-t5{animation-delay:1.75s}.phylo-t6{animation-delay:2.1s}.phylo-t7{animation-delay:2.45s}
+    .phylo-t1-label{animation-delay:2.7s}.phylo-t2-label{animation-delay:2.3s}.phylo-t3-label{animation-delay:1.9s}.phylo-t4-label{animation-delay:1.5s}.phylo-t5-label{animation-delay:2.8s}.phylo-t6-label{animation-delay:3.2s}.phylo-t7-label{animation-delay:3.5s}
+
+    /* === LOGIN CARD DELAY === */
+    .exam-auth-card{animation-delay:3.5s;animation-fill-mode:backwards!important;background:rgba(13,22,28,0.5);backdrop-filter:blur(6px) saturate(100%);-webkit-backdrop-filter:blur(6px) saturate(100%);border:1px solid rgba(255,255,255,0.08)}
+
     /* Ocultar topbar inicialmente */
     .topbar.hidden{display:none!important}
   </style>
@@ -214,6 +232,56 @@
 
 <!-- LOGIN -->
 <div id="login-container" class="exam-login flex-center">
+  <!-- FILOGRAMA ANIMADO DE FONDO -->
+  <div class="phylogram-bg" aria-hidden="true">
+    <svg viewBox="0 0 880 600" xmlns="http://www.w3.org/2000/svg" class="phylogram-svg">
+      <defs><filter id="phylo-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2" result="blur"/><feComposite in="SourceGraphic" in2="blur" operator="over"/></filter></defs>
+      <rect x="15" y="426" width="40" height="2.5" rx="1.25" class="phylo-branch phylo-t0" fill="#28d5b1" filter="url(#phylo-glow)"/>
+      <rect x="55" y="313" width="50" height="2.5" rx="1.25" class="phylo-branch phylo-t1" fill="#28d5b1" filter="url(#phylo-glow)"/>
+      <rect x="105" y="227" width="60" height="2.3" rx="1.15" class="phylo-branch phylo-t2" fill="#28d5b1" filter="url(#phylo-glow)"/>
+      <rect x="165" y="155" width="70" height="2" rx="1" class="phylo-branch phylo-t3" fill="#28d5b1" filter="url(#phylo-glow)"/>
+      <rect x="235" y="100" width="80" height="1.8" rx="0.9" class="phylo-branch phylo-t4" fill="#28d5b1" filter="url(#phylo-glow)"/>
+      <rect x="315" y="62" width="90" height="1.6" rx="0.8" class="phylo-branch phylo-t5" fill="#28d5b1" filter="url(#phylo-glow)"/>
+      <rect x="405" y="34" width="95" height="1.5" rx="0.75" class="phylo-branch phylo-t6" fill="#28d5b1" filter="url(#phylo-glow)"/>
+      <rect x="54" y="313" width="2.2" height="227" class="phylo-branch-v phylo-t1" fill="#1a9a80"/>
+      <rect x="104" y="227" width="2" height="173" class="phylo-branch-v phylo-t2" fill="#1a9a80"/>
+      <rect x="164" y="155" width="1.8" height="145" class="phylo-branch-v phylo-t3" fill="#1a9a80"/>
+      <rect x="234" y="100" width="1.6" height="110" class="phylo-branch-v phylo-t4" fill="#1a9a80"/>
+      <rect x="314" y="62" width="1.4" height="78" class="phylo-branch-v phylo-t5" fill="#1a9a80"/>
+      <rect x="404" y="34" width="1.2" height="56" class="phylo-branch-v phylo-t6" fill="#1a9a80"/>
+      <rect x="55" y="539" width="525" height="2.2" rx="1.1" class="phylo-branch phylo-t1" fill="#f4b74f"/>
+      <rect x="105" y="399" width="475" height="2" rx="1" class="phylo-branch phylo-t2" fill="#3be88c"/>
+      <rect x="165" y="299" width="415" height="1.8" rx="0.9" class="phylo-branch phylo-t3" fill="#e88a3a"/>
+      <rect x="235" y="209" width="345" height="1.6" rx="0.8" class="phylo-branch phylo-t4" fill="#409eff"/>
+      <rect x="315" y="140" width="265" height="1.4" rx="0.7" class="phylo-branch phylo-t5" fill="#a78bfa"/>
+      <rect x="405" y="85" width="175" height="1.2" rx="0.6" class="phylo-branch phylo-t6" fill="#ff6b73"/>
+      <rect x="500" y="50" width="80" height="1" rx="0.5" class="phylo-branch phylo-t7" fill="#28d5b1"/>
+      <rect x="499" y="19" width="1.1" height="31" class="phylo-branch-v phylo-t7" fill="#1a9a80"/>
+      <circle cx="500" cy="19" r="3.5" class="phylo-node-tip" fill="#28d5b1" filter="url(#phylo-glow)"/>
+      <circle cx="580" cy="539" r="3.5" class="phylo-node-tip" fill="#f4b74f"/>
+      <circle cx="580" cy="399" r="3.5" class="phylo-node-tip" fill="#3be88c"/>
+      <circle cx="580" cy="299" r="3.5" class="phylo-node-tip" fill="#e88a3a"/>
+      <circle cx="580" cy="209" r="3.5" class="phylo-node-tip" fill="#409eff"/>
+      <circle cx="580" cy="140" r="3.5" class="phylo-node-tip" fill="#a78bfa"/>
+      <circle cx="580" cy="85" r="3.5" class="phylo-node-tip" fill="#ff6b73"/>
+      <circle cx="580" cy="50" r="3.5" class="phylo-node-tip" fill="#28d5b1"/>
+      <text x="590" y="543" class="phylo-label phylo-t1-label" fill="#f4b74f" font-size="11" font-style="italic">E. coli</text>
+      <text x="590" y="403" class="phylo-label phylo-t2-label" fill="#3be88c" font-size="11" font-style="italic">A. thaliana</text>
+      <text x="590" y="303" class="phylo-label phylo-t3-label" fill="#e88a3a" font-size="11" font-style="italic">D. melanogaster</text>
+      <text x="590" y="213" class="phylo-label phylo-t4-label" fill="#409eff" font-size="11" font-style="italic">D. rerio</text>
+      <text x="590" y="144" class="phylo-label phylo-t5-label" fill="#a78bfa" font-size="11" font-style="italic">G. gallus</text>
+      <text x="590" y="89" class="phylo-label phylo-t6-label" fill="#ff6b73" font-size="11" font-style="italic">M. musculus</text>
+      <text x="590" y="54" class="phylo-label phylo-t7-label" fill="#28d5b1" font-size="11" font-style="italic">H. sapiens</text>
+      <text x="15" y="419" fill="#1a9a80" font-size="9" opacity="0.7" font-family="monospace">85</text>
+      <text x="55" y="306" fill="#1a9a80" font-size="9" opacity="0.7" font-family="monospace">92</text>
+      <text x="105" y="220" fill="#1a9a80" font-size="9" opacity="0.7" font-family="monospace">88</text>
+      <text x="165" y="148" fill="#1a9a80" font-size="9" opacity="0.7" font-family="monospace">95</text>
+      <text x="235" y="93" fill="#1a9a80" font-size="9" opacity="0.7" font-family="monospace">97</text>
+      <text x="315" y="55" fill="#1a9a80" font-size="9" opacity="0.7" font-family="monospace">99</text>
+      <text x="405" y="27" fill="#1a9a80" font-size="9" opacity="0.7" font-family="monospace">100</text>
+      <text x="499" y="12" fill="#1a9a80" font-size="9" opacity="0.7" font-family="monospace">100</text>
+    </svg>
+  </div>
   <div class="exam-auth-card glass animate-slide-up">
     <div class="exam-auth-header">
       <h1>Filogenética Molecular</h1>
@@ -246,7 +314,9 @@
   <span id="warnings-display" class="exam-warnings">Alertas: 0</span>
 </div>
 
-<header class="topbar hidden">
+<div id="page-content" class="hidden">
+
+<header class="topbar">
   <div class="crumb">2ª Parte · Pipeline & Comandos</div>
   <nav>
     <a href="#contexto">Contexto</a>
@@ -763,6 +833,8 @@
     </ol>
   </div>
 </section>
+
+</div><!-- /page-content -->
 
 <footer></footer>
 
@@ -1780,11 +1852,17 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const EXAM_DURATION = 2 * 60 * 60; // 2 horas
 
 let supabase = null;
-try { supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) { console.warn('Supabase no configurado, usando modo local'); }
+try { 
+  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  console.log('Supabase inicializado');
+} catch(e) { 
+  console.warn('Supabase no disponible, usando modo local');
+}
 
 let examState = {
   studentCedula: '',
   studentName: '',
+  studentId: null,
   timeLeft: EXAM_DURATION,
   warnings: 0,
   timerInterval: null,
@@ -1796,7 +1874,7 @@ const fsOverlay = document.getElementById('fullscreen-overlay');
 const fsBtn = document.getElementById('enter-fullscreen-btn');
 const loginContainer = document.getElementById('login-container');
 const examHeader = document.getElementById('exam-header');
-const topbar = document.querySelector('.topbar');
+const pageContent = document.getElementById('page-content');
 
 function enterFullscreen() {
   const el = document.documentElement;
@@ -1829,10 +1907,12 @@ const studentDisplay = document.getElementById('student-display');
 async function validateStudent(cedula) {
   if (supabase) {
     try {
-      const { data, error } = await supabase.from('students').select('id,full_name,cedula').eq('cedula', cedula.trim()).eq('active', true).single();
+      const { data, error } = await supabase.from('students').select('id,full_name,cedula').eq('cedula', cedula.trim()).eq('active', true).maybeSingle();
+      if (error) { console.warn('Supabase error:', error.message); }
       if (!error && data) return { ok: true, student: data };
-    } catch(e) { console.warn('Supabase fallback', e); }
+    } catch(e) { console.warn('Supabase fallback', e.message); }
   }
+  // Modo local: acepta cualquier cédula de 5+ dígitos
   if (cedula.length >= 5) return { ok: true, student: { cedula, full_name: 'Estudiante ' + cedula } };
   return { ok: false };
 }
@@ -1862,7 +1942,7 @@ cedulaInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') validate
 // === MOSTRAR EXAMEN ===
 function showExam() {
   examHeader.classList.remove('hidden');
-  topbar.classList.remove('hidden');
+  pageContent.classList.remove('hidden');
   examState.started = true;
   startTimer();
   saveAttempt();
