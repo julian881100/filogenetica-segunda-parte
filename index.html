@@ -177,7 +177,18 @@
 <section class="s-cover s-pink" id="inicio">
   <div class="label" style="color:var(--pink)">Segunda parte — examen filogenética</div>
   <h1>Pipeline <span class="r">filogenético</span><br>y <span class="t">comandos</span></h1>
-  <p class="subtitle">Aquí no alcanza con ordenar tarjetas. Tienes que decidir qué programa corre con qué archivo, qué flag resuelve cada problema, y cómo se encadena todo desde las secuencias crudas hasta los árboles anotados.</p>
+
+  <div class="card" style="text-align:center;padding:28px 24px;margin-bottom:12px">
+    <h3 style="font-size:22px;margin:0 0 10px">Entregables</h3>
+    <p style="font-size:16px;margin-bottom:10px">Entregar un archivo en Word con pantallazos de las respuestas. Con el nombre del estudiante, cédula y enviarlo al correo <strong>consultor.ceitto@colmayor.edu.co</strong></p>
+    <ul style="display:inline-block;text-align:left;font-size:16px;line-height:1.8;margin:0">
+      <li><strong>Sección A:</strong> Orden del pipeline (numeración del 1 al 7 con indicación de bifurcaciones IQ-TREE ↔ BEAST)</li>
+      <li><strong>Sección B:</strong> Comandos completos (7 comandos / configuraciones)</li>
+      <li><strong>Sección C:</strong> Respuestas a las 6 preguntas de control</li>
+      <li><strong>Sección D:</strong> Árboles generados de IQ-TREE y BEAST con soportes respectivos</li>
+    </ul>
+  </div>
+
   <p class="subtitle" style="font-size:14px">Tres secciones: <span class="pill pill-teal">Contexto biológico</span> <span class="pill pill-blue">Árbol taxonómico</span> <span class="pill pill-pink">Pipeline desordenado</span></p>
   <p class="small" style="margin-top:20px">Archivo de trabajo: <code style="color:var(--primary)">hongos_50_28S_refseq.fasta</code></p>
 </section>
@@ -194,7 +205,7 @@
     <p>El gen nuclear <strong>28S</strong> (subunidad grande del ribosoma) es el marcador de todo el práctico. Esto tiene consecuencias directas sobre cómo eliges modelo y qué esperas del árbol:</p>
     <ul style="margin:12px 0 0 22px;line-height:1.7">
       <li><strong>Reloj molecular laxo</strong> — las regiones D1–D3 del LSU evolucionan a tasa moderada. Para BEAST vas a necesitar un <strong>reloj lognormal relajado</strong> (ucld) casi con seguridad. Un reloj estricto no se sostiene en hongos distantes.</li>
-      <li><strong>Modelo de sustitución:</strong> con 28S de hongos tan diversos (Mucoromycetes a Dothideomycetes), <strong>GTR+G+I</strong> o <strong>GTR+G</strong> son los candidatos más probables. Deja que ModelFinder (<code>-m MFP</code>) decida.</li>
+      <li><strong>Modelo de sustitución:</strong> con 28S de hongos tan diversos (Mucoromycetes a Dothideomycetes). Deja que ModelFinder (<code>-m MFP</code>) decida.</li>
     </ul>
   </div>
 
@@ -723,17 +734,6 @@
       <li>Si en Tracer ves que el ESS de <code>treeHeight</code> es 45, ¿qué haces? ¿Entregas el árbol igual, alargas la cadena o cambias los priores?</li>
       <li>¿Cómo distingues visualmente en FigTree qué soportes vienen de UFBoot y cuáles de PP bayesiana?</li>
     </ol>
-  </div>
-
-  <div class="card">
-    <h3>Entregables</h3>
-    <p>Entregar un archivo en Word con pantallazos de las respuestas. Con el nombre del estudiante, cédula y enviarlo al correo <strong>consultor.ceitto@colmayor.edu.co</strong></p>
-    <ul style="margin:12px 0 0 22px;line-height:1.7">
-      <li><strong>Sección A:</strong> Orden del pipeline (numeración del 1 al 7 con indicación de bifurcaciones IQ-TREE ↔ BEAST)</li>
-      <li><strong>Sección B:</strong> Comandos completos (7 comandos / configuraciones)</li>
-      <li><strong>Sección C:</strong> Respuestas a las 6 preguntas de control</li>
-      <li><strong>Sección D:</strong> Árboles generados de IQ-TREE y BEAST con soportes respectivos</li>
-    </ul>
   </div>
 </section>
 
