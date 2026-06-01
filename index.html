@@ -177,7 +177,7 @@
 <section class="s-cover s-pink" id="inicio">
   <div class="label" style="color:var(--pink)">Segunda parte — examen filogenética</div>
   <h1>Pipeline <span class="r">filogenético</span><br>y <span class="t">comandos</span></h1>
-  <p class="subtitle">Acá no alcanza con ordenar tarjetas. Tenés que decidir qué programa corre con qué archivo, qué flag resuelve cada problema, y cómo se encadena todo desde las secuencias crudas hasta los árboles anotados.</p>
+  <p class="subtitle">Aquí no alcanza con ordenar tarjetas. Tienes que decidir qué programa corre con qué archivo, qué flag resuelve cada problema, y cómo se encadena todo desde las secuencias crudas hasta los árboles anotados.</p>
   <p class="subtitle" style="font-size:14px">Tres secciones: <span class="pill pill-teal">Contexto biológico</span> <span class="pill pill-blue">Árbol taxonómico</span> <span class="pill pill-pink">Pipeline desordenado</span></p>
   <p class="small" style="margin-top:20px">Archivo de trabajo: <code style="color:var(--primary)">hongos_50_28S_refseq.fasta</code></p>
 </section>
@@ -188,25 +188,25 @@
 <section id="contexto">
   <div class="label" style="color:var(--primary)">Sección 1</div>
   <h2>Contexto <span class="t">biológico</span> para la inferencia</h2>
-  <p class="subtitle">Acá no se repite el caso (ya lo trabajaste en la parte 1). Esto es lo que necesitás tener CLARO antes de escribir <strong>un solo comando</strong> de IQ-TREE o BEAST.</p>
+  <p class="subtitle">Aquí no se repite el caso (ya lo trabajaste en la parte 1). Esto es lo que necesitas tener CLARO antes de escribir <strong>un solo comando</strong> de IQ-TREE o BEAST.</p>
 
   <div class="card">
     <h3>1.1 — El marcador: LSU (28S) rRNA</h3>
-    <p>El gen nuclear <strong>28S</strong> (subunidad grande del ribosoma) es el marcador de todo el práctico. Esto tiene consecuencias directas sobre cómo elegís modelo y qué esperás del árbol:</p>
+    <p>El gen nuclear <strong>28S</strong> (subunidad grande del ribosoma) es el marcador de todo el práctico. Esto tiene consecuencias directas sobre cómo eliges modelo y qué esperas del árbol:</p>
     <ul style="margin:12px 0 0 22px;line-height:1.7">
       <li><strong>Reloj molecular laxo</strong> — las regiones D1–D3 del LSU evolucionan a tasa moderada. Para BEAST vas a necesitar un <strong>reloj lognormal relajado</strong> (ucld) casi con seguridad. Un reloj estricto no se sostiene en hongos distantes.</li>
-      <li><strong>Modelo de sustitución:</strong> con 28S de hongos tan diversos (Mucoromycetes a Dothideomycetes), <strong>GTR+G+I</strong> o <strong>GTR+G</strong> son los candidatos más probables. Dejá que ModelFinder (<code>-m MFP</code>) decida, pero anticipá que el parámetro de invariable sites (I) suele mejorar el ajuste en LSU por la estructura secundaria conservada.</li>
+      <li><strong>Modelo de sustitución:</strong> con 28S de hongos tan diversos (Mucoromycetes a Dothideomycetes), <strong>GTR+G+I</strong> o <strong>GTR+G</strong> son los candidatos más probables. Deja que ModelFinder (<code>-m MFP</code>) decida, pero anticipa que el parámetro de invariable sites (I) suele mejorar el ajuste en LSU por la estructura secundaria conservada.</li>
       <li><strong>Heterogeneidad entre sitios:</strong> el 28S tiene regiones muy conservadas (centro del ribosoma) y regiones muy variables (D1–D3). Modelar con <strong>Γ</strong> (gamma) no es opcional — es obligatorio.</li>
       <li><strong>Single-gene limit:</strong> con un solo gen ribosómico no vas a resolver relaciones profundas (por ej., la posición de Mucoromycetes respecto a los demás). No es un límite del software, es un límite <em>biológico</em> del marcador.</li>
     </ul>
     <div class="quote" style="margin-top:12px">
-      <strong>Implicancia directa en comandos:</strong> cuando corras IQ-TREE, <code>--seqtype DNA</code> se detecta solo. Pero cuando configures BEAUti, <strong>no</strong> elegís un modelo de codones — es un marcador no codificante — y tenés que decidir si particionás o no. Con 50 secuencias de ~850 bp, una sola partición es suficiente.
+      <strong>Implicancia directa en comandos:</strong> cuando corras IQ-TREE, <code>--seqtype DNA</code> se detecta solo. Pero cuando configures BEAUti, <strong>no</strong> eliges un modelo de codones — es un marcador no codificante — y tienes que decidir si particionas o no. Con 50 secuencias de ~850 bp, una sola partición es suficiente.
     </div>
   </div>
 
   <div class="card">
     <h3>1.2 — Delimitación ingroup / outgroup para los árboles</h3>
-    <p>Recordá la hipótesis H₁ del caso: los géneros de Didymellaceae sobre madera de <em>Aquilaria</em> forman un linaje monofilético. Esto define el <strong>ingroup</strong>. El resto no es ruido — es material para outgroup, comparación ecológica o exclusión.</p>
+    <p>Recuerda la hipótesis H₁ del caso: los géneros de Didymellaceae sobre madera de <em>Aquilaria</em> forman un linaje monofilético. Esto define el <strong>ingroup</strong>. El resto no es ruido — es material para outgroup, comparación ecológica o exclusión.</p>
 
     <table class="bio-table">
       <thead>
@@ -253,15 +253,15 @@
     </table>
 
     <div class="tension">
-      <strong>Atención:</strong> en la parte 1 elegiste un outgroup. Eso mismo tenés que pasarle a IQ-TREE (<code>-o</code>) y a BEAST (taxon set). La consistencia entre programas se evalúa. Si en IQ-TREE usás un outgroup y en BEAST otro, el enraizamiento va a diferir y H₁ no se puede evaluar igual.
+      <strong>Atención:</strong> en la parte 1 elegiste un outgroup. Eso mismo tienes que pasarle a IQ-TREE (<code>-o</code>) y a BEAST (taxon set). La consistencia entre programas se evalúa. Si en IQ-TREE usas un outgroup y en BEAST otro, el enraizamiento va a diferir y H₁ no se puede evaluar igual.
     </div>
   </div>
 
   <div class="card">
     <h3>1.3 — Sesgos y limitaciones que anticipar en el informe</h3>
     <ul style="margin:12px 0 0 22px;line-height:1.7">
-      <li><strong>Outgroup lejano:</strong> si enraizás con Sordariomycetes o con Eurotiomycetes, el largo de rama del outgroup puede atraer raíces largas (LBA, <em>long-branch attraction</em>) y distorsionar la topología dentro de Didymellaceae. El outgroup óptimo de H₁ es <strong><em>Leptosphaerulina</em></strong> (misma familia, pero fuera del clado H₁).</li>
-      <li><strong>Gen único:</strong> con un solo locus concatenado, no podés medir discordancia entre genes. Cualquier conclusión sobre monofilia de H₁ es tentativa — necesitás al menos ITS + TEF1 + tubulina para un estudio filogenético robusto de Didymellaceae.</li>
+      <li><strong>Outgroup lejano:</strong> si enraizas con Sordariomycetes o con Eurotiomycetes, el largo de rama del outgroup puede atraer raíces largas (LBA, <em>long-branch attraction</em>) y distorsionar la topología dentro de Didymellaceae. El outgroup óptimo de H₁ es <strong><em>Leptosphaerulina</em></strong> (misma familia, pero fuera del clado H₁).</li>
+      <li><strong>Gen único:</strong> con un solo locus concatenado, no puedes medir discordancia entre genes. Cualquier conclusión sobre monofilia de H₁ es tentativa — necesitas al menos ITS + TEF1 + tubulina para un estudio filogenético robusto de Didymellaceae.</li>
       <li><strong>Soporte bootstrap vs. PP:</strong> IQ-TREE da soportes UFBoot y SH-aLRT. BEAST da probabilidades posteriores (PP). No son lo mismo. UFBoot ≥ 95% o PP ≥ 0.95 son umbrales de referencia, pero en un solo gen los soportes altos pueden ser artefacto si el modelo está mal especificado.</li>
     </ul>
   </div>
@@ -501,14 +501,14 @@
 
   <div class="card">
     <h3>Pregunta de control — antes de escribir comandos</h3>
-    <p>Mirá el árbol taxonómico de arriba. Si enraizás el análisis de H₁ con:</p>
+    <p>Mira el árbol taxonómico de arriba. Si enraizas el análisis de H₁ con:</p>
     <ul style="margin:12px 0 0 22px;line-height:1.7">
       <li><strong><em>Leptosphaerulina</em></strong> (misma familia Didymellaceae) — ¿qué tan lejos queda del ingroup? ¿Comparten el ancestro común más reciente con H₁?</li>
       <li><strong><em>Corynespora</em></strong> (Corynesporascaceae) — ¿es más lejano que <em>Leptosphaerulina</em>? ¿Por qué?</li>
       <li><strong><em>Hypoxylon</em></strong> (Sordariomycetes) — ¿es un outgroup válido o está tan lejos que puede generar LBA?</li>
     </ul>
     <div class="warning" style="margin-top:12px">
-      <strong>Clave:</strong> el outgroup óptimo para evaluar H₁ (monofilia de Didymellaceae lignícolas) es otro miembro de Didymellaceae <strong>no listado en H₁</strong>. <em>Leptosphaerulina</em> cumple ese rol. Si usás un outgroup más lejano (todo Pleosporales o Sordariomycetes), el largo de rama puede forzar una raíz artificial que no refleje la verdadera relación.
+      <strong>Clave:</strong> el outgroup óptimo para evaluar H₁ (monofilia de Didymellaceae lignícolas) es otro miembro de Didymellaceae <strong>no listado en H₁</strong>. <em>Leptosphaerulina</em> cumple ese rol. Si usas un outgroup más lejano (todo Pleosporales o Sordariomycetes), el largo de rama puede forzar una raíz artificial que no refleje la verdadera relación.
     </div>
   </div>
 </section>
@@ -523,7 +523,7 @@
   <!-- ===== LÍNEA GRÁFICA DEL PIPELINE (DESORDENADA) ===== -->
   <div class="card">
     <h3>Línea gráfica del pipeline</h3>
-    <p class="small">Las tarjetas de abajo muestran los pasos del pipeline, pero están <strong>desordenadas</strong>. Asigná a cada tarjeta su posición correcta (1 al 7) y dibujá las flechas en la grilla.</p>
+    <p class="small">Las tarjetas de abajo muestran los pasos del pipeline, pero están <strong>desordenadas</strong>. Asigna a cada tarjeta su posición correcta (1 al 7) y dibuja las flechas en la grilla.</p>
     <div style="display:flex;flex-wrap:wrap;gap:10px;margin:20px 0;justify-content:center">
       <!-- Tarjeta A: TreeAnnotator (posición real: 6) -->
       <div style="background:var(--panel-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--pink);border-radius:10px;padding:14px 16px;text-align:center;min-width:115px">
@@ -592,7 +592,7 @@
     </div>
 
     <!-- Grilla de orden -->
-    <h4 style="margin-top:10px">Asigná el orden correcto</h4>
+    <h4 style="margin-top:10px">Asigna el orden correcto</h4>
     <p class="small">Escribí la letra de la tarjeta (A–G) en el casillero que corresponda, del paso 1 al 7. La tarjeta C (FASTA crudo) ya está puesta como pista — es el punto de partida del pipeline.</p>
     <div class="order-slots">
       <div class="order-slot"><span class="num">1</span><span style="flex:1;font-size:15px;padding:6px 4px;color:var(--primary)">Tarjeta C — FASTA crudo / limpieza</span></div>
@@ -603,7 +603,7 @@
       <div class="order-slot"><span class="num">6</span><input placeholder="Tarjeta ___ — …"></div>
       <div class="order-slot"><span class="num">7</span><input placeholder="Tarjeta ___ — …"></div>
     </div>
-    <p class="small" style="margin-top:8px">Después de ordenar, dibujá las flechas entre tarjetas. ¿Dónde se bifurca el pipeline? ¿Qué paso consume el mismo archivo de entrada que otro?</p>
+    <p class="small" style="margin-top:8px">Después de ordenar, dibuja las flechas entre tarjetas. ¿Dónde se bifurca el pipeline? ¿Qué paso consume el mismo archivo de entrada que otro?</p>
   </div>
 
   <!-- ===== COMANDOS LÍNEA POR LÍNEA (REVOLTIJO TOTAL) ===== -->
@@ -643,7 +643,7 @@
       <li><code>mafft linsi hongos_clean.fasta > hongos_aln.fasta</code></li>
     </ol>
 
-    <p class="small" style="margin-top:12px">Pista: el pipeline tiene 7 pasos (tarjetas C, D, B, F, G, A, E). La tarjeta F (IQ‑TREE) corre <strong>dos veces</strong> — primero el modelo, después el árbol. La tarjeta E (FigTree) no tiene comando de terminal. Contá cuántas líneas útiles deberían quedar si descartás los señuelos.</p>
+    <p class="small" style="margin-top:12px">Pista: el pipeline tiene 7 pasos (tarjetas C, D, B, F, G, A, E). La tarjeta F (IQ‑TREE) corre <strong>dos veces</strong> — primero el modelo, después el árbol. La tarjeta E (FigTree) no tiene comando de terminal. Cuenta cuántas líneas útiles deberían quedar si descartas los señuelos.</p>
   </div>
 </section>
 
@@ -653,11 +653,11 @@
 <section class="s-amber" id="comandos">
   <div class="label" style="color:var(--amber)">Sección 4</div>
   <h2>Redactá tus <span class="a">comandos</span></h2>
-  <p class="subtitle">Para cada paso, escribí la línea exacta que ejecutarías en la terminal de Ubuntu/WSL. Usá el archivo <code style="color:var(--primary)">hongos_50_28S_refseq.fasta</code> como punto de partida.</p>
+  <p class="subtitle">Para cada paso, escribe la línea exacta que ejecutarías en la terminal de Ubuntu/WSL. Usa el archivo <code style="color:var(--primary)">hongos_50_28S_refseq.fasta</code> como punto de partida.</p>
 
   <div class="worksheet card">
     <h3>Paso 1 — Limpieza de cabeceras FASTA</h3>
-    <p class="small">Las cabeceras tienen espacios, caracteres especiales y duplicados parciales. Necesitás nombres cortos sin espacios para que MAFFT, IQ-TREE y BEAST no se quejen. Ejemplo: <code>NG_246939.1_Didymella_subrosea</code></p>
+    <p class="small">Las cabeceras tienen espacios, caracteres especiales y duplicados parciales. Necesitas nombres cortos sin espacios para que MAFFT, IQ-TREE y BEAST no se quejen. Ejemplo: <code>NG_246939.1_Didymella_subrosea</code></p>
     <label>Comando (sed, awk, o seqkit):</label>
     <textarea class="cmd-area" rows="3" placeholder="sed o awk para limpiar cabeceras…"></textarea>
   </div>
@@ -678,22 +678,22 @@
 
   <div class="worksheet card">
     <h3>Paso 4a — IQ-TREE: selección de modelo</h3>
-    <p class="small">IQ-TREE elige el mejor modelo de sustitución con ModelFinder. Ejecutalo primero, sin bootstrap. Cuando termine, leé el archivo <code>.iqtree</code> para ver el modelo ganador.</p>
+    <p class="small">IQ-TREE elige el mejor modelo de sustitución con ModelFinder. Ejecútalo primero, sin bootstrap. Cuando termine, lee el archivo <code>.iqtree</code> para ver el modelo ganador.</p>
     <label>Comando IQ-TREE (solo modelo):</label>
     <textarea class="cmd-area" rows="2" placeholder="iqtree2 -s … -m MFP …"></textarea>
   </div>
 
   <div class="worksheet card">
     <h3>Paso 4b — IQ-TREE: árbol ML con bootstrap</h3>
-    <p class="small">Ahora corre el árbol completo con el mejor modelo (o dejá que IQ-TREE lo seleccione otra vez con <code>-m MFP</code>) y pedí bootstrap. Acá definís el outgroup.</p>
+    <p class="small">Ahora corre el árbol completo con el mejor modelo (o dejá que IQ-TREE lo seleccione otra vez con <code>-m MFP</code>) y pide bootstrap. Aquí defines el outgroup.</p>
     <label>Comando IQ-TREE (ML + UFBoot + outgroup):</label>
     <textarea class="cmd-area" rows="3" placeholder="iqtree2 -s … -m … -bb 1000 -o …"></textarea>
   </div>
 
   <div class="worksheet card">
     <h3>Paso 5 — BEAUti: configuración del XML</h3>
-    <p class="small">Acá no se escribe un comando de terminal, pero describí exactamente qué configurarías en BEAUti (o en el script BDSKY si usás modo texto):</p>
-    <label>Configuración de BEAUti (describí cada pestaña):</label>
+    <p class="small">Aquí no se escribe un comando de terminal, pero describe exactamente qué configurarías en BEAUti (o en el script BDSKY si usas modo texto):</p>
+    <label>Configuración de BEAUti (describe cada pestaña):</label>
     <textarea class="cmd-area" rows="5" placeholder="1. Partitions: cargar hongos_trimal.fasta, una sola partición, modelo GTR+G (o el que haya elegido ModelFinder)&#10;2. Taxon sets: definir 'ingroup' (16 accesiones H₁) y 'outgroup' (<em>Leptosphaerulina</em> spp.)&#10;3. Site model: GTR+G, 4 categorías gamma, estimar frecuencias&#10;4. Clock model: Relaxed lognormal (ucld)&#10;5. Prior: Yule process o Birth-Death&#10;6. MCMC: 10⁷ generaciones, sample cada 1000, pre-burnin 0 (se descarta después)&#10;7. Guardar XML como hongos_beast.xml"></textarea>
   </div>
 
@@ -714,7 +714,7 @@
   <div class="worksheet card">
     <h3>Paso 8 — FigTree: visualización comparativa</h3>
     <p class="small">Cargá ambos árboles (ML de IQ-TREE y bayesiano de TreeAnnotator) y compará los soportes nodales.</p>
-    <label>Describí cómo harías la comparación visual:</label>
+    <label>Describe cómo harías la comparación visual:</label>
     <textarea class="cmd-area" rows="3" placeholder="En FigTree: Archivo > Cargar árbol…&#10;1. Cargar .treefile de IQ-TREE, colorear clados por soporte UFBoot ≥ 95%&#10;2. Cargar .tree de TreeAnnotator, mostrar PP ≥ 0.95 como grosor de rama&#10;3. Comparar nodo por nodo: ¿los mismos clados reciben alto soporte en ambos métodos?"></textarea>
   </div>
 
@@ -726,8 +726,8 @@
       <li>¿El outgroup que definiste en <code>-o</code> de IQ-TREE coincide exactamente con el taxon set "outgroup" en BEAUti? Si no, ¿por qué?</li>
       <li>¿Qué archivo leerías para confirmar el mejor modelo de sustitución elegido por ModelFinder?</li>
       <li>¿Qué archivo leerías para verificar que la cadena MCMC convergió?</li>
-      <li>Si en Tracer ves que el ESS de <code>treeHeight</code> es 45, ¿qué hacés? ¿Entregás el árbol igual, alargás la cadena o cambiás los priores?</li>
-      <li>¿Cómo distinguís visualmente en FigTree qué soportes vienen de UFBoot y cuáles de PP bayesiana?</li>
+      <li>Si en Tracer ves que el ESS de <code>treeHeight</code> es 45, ¿qué haces? ¿Entregas el árbol igual, alargas la cadena o cambias los priores?</li>
+      <li>¿Cómo distingues visualmente en FigTree qué soportes vienen de UFBoot y cuáles de PP bayesiana?</li>
     </ol>
   </div>
 
