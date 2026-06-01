@@ -1,0 +1,1756 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>2ª Parte · Pipeline filogenético y comandos</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#060d11;--panel-bg:rgba(13,22,28,0.85);--surface:rgba(13,22,28,0.65);--surface2:rgba(20,32,40,0.75);
+      --primary:#28d5b1;--primary-hover:#1fc19f;
+      --amber:#f4b74f;--purple:#a78bfa;--blue:#409eff;--red:#ff5b60;--pink:#e879a0;
+      --text:#e2e8f0;--muted:#94a3b8;--border:rgba(255,255,255,0.06);--border-focus:rgba(40,213,177,0.4);
+      --radius-lg:16px;--radius-md:10px;--radius-sm:6px;
+      --font-sans:'Inter',system-ui,-apple-system,sans-serif;--font-mono:'JetBrains Mono','Consolas',monospace;
+      --px:clamp(20px,4vw,90px);
+      --transition:all 0.25s cubic-bezier(0.4,0,0.2,1);
+    }
+    html{scroll-behavior:smooth}
+    body{
+      background:var(--bg);color:var(--text);font-family:var(--font-sans);line-height:1.6;
+      background-image:radial-gradient(at 0% 0%,rgba(20,50,60,0.15) 0px,transparent 50%),radial-gradient(at 100% 100%,rgba(40,213,177,0.06) 0px,transparent 50%),linear-gradient(180deg,#060d11 0%,#03070a 100%);
+      min-height:100vh
+    }
+    ::-webkit-scrollbar{width:8px}
+    ::-webkit-scrollbar-track{background:rgba(0,0,0,0.2)}
+    ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:4px}
+    ::-webkit-scrollbar-thumb:hover{background:var(--primary)}
+
+    .topbar{
+      position:fixed;inset:0 0 auto;z-index:100;display:flex;justify-content:space-between;align-items:center;
+      padding:12px var(--px);background:rgba(6,13,17,0.92);backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%);
+      border-bottom:1px solid var(--border)
+    }
+    .topbar .crumb{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+    .topbar nav{display:flex;gap:6px;flex-wrap:wrap}
+    .topbar a{font-size:12px;color:var(--muted);text-decoration:none;padding:5px 12px;border:1px solid var(--border);border-radius:999px;transition:var(--transition)}
+    .topbar a:hover{border-color:var(--primary);color:var(--primary)}
+
+    section{padding:88px var(--px) 72px;max-width:min(1400px,96vw);margin:0 auto}
+    section.wide{max-width:96vw}
+    .s-cover{min-height:80vh;display:flex;flex-direction:column;justify-content:center;padding-top:96px}
+    .s-teal{background:rgba(40,213,177,0.02)}
+    .s-amber{background:rgba(244,183,79,0.02)}
+    .s-blue{background:rgba(64,158,255,0.02)}
+    .s-purple{background:rgba(167,139,250,0.02)}
+    .s-pink{background:rgba(232,121,160,0.02)}
+
+    .label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+    h1{font-size:clamp(30px,4vw,52px);font-weight:800;line-height:1.1;margin-bottom:18px;letter-spacing:-0.02em}
+    h1 .t{color:var(--primary)}h1 .a{color:var(--amber)}h1 .b{color:var(--blue)}h1 .p{color:var(--purple)}h1 .r{color:var(--pink)}
+    h2{font-size:clamp(24px,3vw,38px);font-weight:700;margin-bottom:16px;letter-spacing:-0.01em}
+    h2 .t{color:var(--primary)}h2 .a{color:var(--amber)}h2 .b{color:var(--blue)}h2 .p{color:var(--purple)}
+    h3{font-size:19px;margin:20px 0 10px;font-weight:700}
+    .subtitle{font-size:17px;color:var(--muted);max-width:800px;margin-bottom:20px}
+    p,li{font-size:16px}
+    .small{font-size:13px;color:var(--muted)}
+    code{background:rgba(40,213,177,0.08);border:1px solid rgba(40,213,177,0.12);border-radius:4px;padding:2px 6px;font-family:var(--font-mono);font-size:12px;color:var(--primary)}
+    code.frag{display:inline-block;padding:6px 11px;background:rgba(13,22,28,0.9);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;line-height:1;white-space:nowrap;transition:var(--transition)}
+    code.frag:hover{border-color:var(--primary);background:rgba(40,213,177,0.06)}
+
+    .pill{display:inline-block;padding:4px 11px;border-radius:999px;font-size:11px;font-weight:600;margin:2px 4px 2px 0}
+    .pill-teal{background:rgba(40,213,177,0.12);color:var(--primary)}
+    .pill-amber{background:rgba(244,183,79,0.12);color:var(--amber)}
+    .pill-red{background:rgba(255,91,96,0.12);color:var(--red)}
+    .pill-blue{background:rgba(64,158,255,0.12);color:var(--blue)}
+    .pill-purple{background:rgba(167,139,250,0.12);color:var(--purple)}
+    .pill-pink{background:rgba(232,121,160,0.12);color:var(--pink)}
+
+    .card{
+      background:var(--panel-bg);backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%);
+      border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin:18px 0;
+      box-shadow:0 8px 32px 0 rgba(0,0,0,0.35);transition:var(--transition)
+    }
+    .card:hover{border-color:rgba(255,255,255,0.1)}
+    .quote{
+      border-left:3px solid var(--primary);padding:16px 20px;margin:20px 0;
+      background:rgba(40,213,177,0.04);border-radius:0 var(--radius-md) var(--radius-md) 0
+    }
+    .tension{
+      border-left:3px solid var(--red);padding:14px 18px;margin:14px 0;
+      background:rgba(255,91,96,0.05);border-radius:0 var(--radius-md) var(--radius-md) 0;font-size:15px
+    }
+    .warning{
+      border-left:3px solid var(--amber);padding:14px 18px;margin:14px 0;
+      background:rgba(244,183,79,0.05);border-radius:0 var(--radius-md) var(--radius-md) 0;font-size:15px
+    }
+
+    .tax-tree{background:rgba(6,13,17,0.8);border:1px solid var(--border);border-radius:var(--radius-md);margin:16px 0;padding:4px 16px 16px;overflow-x:auto}
+    .tax-tree .l0{color:var(--primary);font-weight:700}
+    .tax-tree .l1,.tax-tree .l2,.tax-tree .l3{color:inherit}
+    .tax-tree .h1-clade{background:rgba(40,213,177,0.1);border-radius:4px;padding:1px 6px;display:inline-block;color:var(--primary)}
+    .c-mucor,.c-mucor .l1,.c-mucor .l2,.c-mucor .l3{color:#e57373}
+    .c-sordario,.c-sordario .l1,.c-sordario .l2,.c-sordario .l3{color:#64b5f6}
+    .c-leotio,.c-leotio .l1,.c-leotio .l2,.c-leotio .l3{color:#ba68c8}
+    .c-eurotio,.c-eurotio .l1,.c-eurotio .l2,.c-eurotio .l3{color:#9575cd}
+    .c-pleo,.c-pleo .l1,.c-pleo .l2,.c-pleo .l3{color:#ffb74d}
+    .c-ingroup,.c-ingroup .l1,.c-ingroup .l2,.c-ingroup .l3{color:#81c784}
+    .cladogram,.cladogram ul{list-style:none;margin:0;padding:0;position:relative}
+    .cladogram{padding:6px 0}
+    .cladogram ul{padding-left:24px}
+    .cladogram ul::before{content:'';position:absolute;left:7px;top:0;bottom:0;width:1.5px;background:currentColor;opacity:.1}
+    .cladogram li{position:relative;padding:1.5px 0 1.5px 14px;line-height:1.65;font-size:13px}
+    .cladogram li::before{content:'';position:absolute;left:-17px;top:calc(1.65em/2+1.5px);width:31px;height:0;border-top:1.5px solid;border-color:currentColor;opacity:.1}
+    .cladogram ul li:last-child::after{content:'';position:absolute;left:-17px;top:calc(1.65em/2+2px);bottom:-1px;width:2px;background:var(--bg)}
+    .cladogram>li{padding-left:0}
+    .cladogram>li::before,.cladogram>li::after{display:none}
+
+    .puzzle-cards{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
+    .puzzle-card{padding:12px 16px;background:rgba(20,32,40,0.7);border:1px solid var(--border);border-radius:var(--radius-md);font-size:14px;cursor:default;transition:var(--transition)}
+    .puzzle-card:hover{border-color:var(--blue)}
+    .puzzle-card.correct{border-color:var(--primary);background:rgba(40,213,177,0.06)}
+
+    .order-slots{margin:20px 0}
+    .order-slot{display:flex;align-items:center;gap:12px;margin:10px 0;padding:12px;background:rgba(13,22,28,0.6);border:1px solid var(--border);border-radius:var(--radius-md);transition:var(--transition)}
+    .order-slot:hover{border-color:rgba(255,255,255,0.12)}
+    .order-slot .num{width:32px;height:32px;border-radius:50%;background:rgba(40,213,177,0.12);color:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0}
+    .order-slot input{flex:1;background:transparent;border:none;border-bottom:1px dashed rgba(255,255,255,0.08);color:var(--text);font-size:15px;padding:6px 4px;font-family:inherit}
+    .order-slot input:focus{outline:none;border-bottom-color:var(--primary)}
+
+    .hint-table{width:100%;border-collapse:collapse;font-size:14px;margin:16px 0}
+    .hint-table th,.hint-table td{padding:12px 14px;border:1px solid var(--border);text-align:left;vertical-align:top}
+    .hint-table th{background:rgba(20,32,40,0.7);color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+    .hint-table code{color:var(--amber);font-size:12px}
+
+    .bio-table{width:100%;border-collapse:collapse;font-size:14px;margin:16px 0}
+    .bio-table th,.bio-table td{padding:10px 12px;border:1px solid var(--border);text-align:left;vertical-align:top}
+    .bio-table th{background:rgba(20,32,40,0.7);color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+    .bio-table .row-h1{background:rgba(40,213,177,0.03)}
+    .bio-table .row-out{background:rgba(64,158,255,0.03)}
+    .bio-table .row-contam{background:rgba(255,91,96,0.03)}
+
+    .cmd-blank{width:100%;min-height:52px;padding:12px;background:rgba(6,13,17,0.7);border:1px solid var(--border);border-radius:var(--radius-md);color:var(--text);font-family:var(--font-mono);font-size:13px;resize:vertical}
+    .cmd-input{width:100%;padding:10px;background:rgba(6,13,17,0.7);border:1px solid var(--border);border-radius:var(--radius-md);color:var(--primary);font-family:var(--font-mono);font-size:13px}
+    .worksheet label{display:block;font-weight:600;margin:14px 0 6px;font-size:14px;color:var(--muted)}
+    .worksheet textarea,.worksheet input{width:100%;padding:10px;border:1px solid var(--border);border-radius:var(--radius-md);background:rgba(13,22,28,0.6);color:var(--text);font-family:inherit;font-size:14px;transition:var(--transition)}
+    .worksheet textarea:focus,.worksheet input:focus{outline:none;border-color:var(--border-focus)}
+    .worksheet textarea{min-height:64px}
+    .worksheet .cmd-area{min-height:44px;font-family:var(--font-mono);font-size:13px;background:rgba(6,13,17,0.7)}
+
+    .flow-arrow{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:24px;margin:4px 0}
+
+    .pipeline-card{
+      background:var(--panel-bg);backdrop-filter:blur(12px) saturate(120%);-webkit-backdrop-filter:blur(12px) saturate(120%);
+      border-radius:var(--radius-md);padding:14px 16px;text-align:center;min-width:115px;
+      box-shadow:0 4px 16px rgba(0,0,0,0.3);transition:var(--transition)
+    }
+    .pipeline-card:hover{border-color:rgba(255,255,255,0.15);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.4)}
+
+    .step-box{
+      background:rgba(13,22,28,0.5);border:1px solid var(--border);border-radius:var(--radius-md);
+      padding:16px 18px;margin:12px 0;transition:var(--transition)
+    }
+    .step-box:hover{border-color:rgba(255,255,255,0.1)}
+    .step-box .step-title{font-weight:700;color:var(--primary);font-size:14px;margin-bottom:6px}
+    .step-box .step-desc{font-size:13px;color:var(--muted)}
+    .step-box .step-hint{font-size:12px;color:var(--amber);margin-top:6px;font-style:italic}
+
+    footer{padding:40px var(--px);text-align:center;color:var(--muted);font-size:12px;border-top:1px solid var(--border)}
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="crumb">2ª Parte · Pipeline & Comandos</div>
+  <nav>
+    <a href="#contexto">Contexto</a>
+    <a href="#taxonomia">Taxonomía</a>
+    <a href="#pipeline">Pipeline</a>
+    <a href="#comandos">Comandos</a>
+  </nav>
+</header>
+
+<!-- ============================================================ -->
+<!-- PORTADA -->
+<!-- ============================================================ -->
+<section class="s-cover s-pink" id="inicio">
+  <div class="label" style="color:var(--pink)">Segunda parte — examen filogenética</div>
+  <h1>Pipeline <span class="r">filogenético</span><br>y <span class="t">comandos</span></h1>
+  <p class="subtitle">Acá no alcanza con ordenar tarjetas. Tenés que decidir qué programa corre con qué archivo, qué flag resuelve cada problema, y cómo se encadena todo desde las secuencias crudas hasta los árboles anotados.</p>
+  <p class="subtitle" style="font-size:14px">Tres secciones: <span class="pill pill-teal">Contexto biológico</span> <span class="pill pill-blue">Árbol taxonómico</span> <span class="pill pill-pink">Pipeline desordenado</span></p>
+  <p class="small" style="margin-top:20px">Archivo de trabajo: <code style="color:var(--primary)">hongos_50_28S_refseq.fasta</code></p>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECCIÓN 1: CONTEXTO BIOLÓGICO ESTRUCTURADO -->
+<!-- ============================================================ -->
+<section id="contexto">
+  <div class="label" style="color:var(--primary)">Sección 1</div>
+  <h2>Contexto <span class="t">biológico</span> para la inferencia</h2>
+  <p class="subtitle">Acá no se repite el caso (ya lo trabajaste en la parte 1). Esto es lo que necesitás tener CLARO antes de escribir <strong>un solo comando</strong> de IQ-TREE o BEAST.</p>
+
+  <div class="card">
+    <h3>1.1 — El marcador: LSU (28S) rRNA</h3>
+    <p>El gen nuclear <strong>28S</strong> (subunidad grande del ribosoma) es el marcador de todo el práctico. Esto tiene consecuencias directas sobre cómo elegís modelo y qué esperás del árbol:</p>
+    <ul style="margin:12px 0 0 22px;line-height:1.7">
+      <li><strong>Reloj molecular laxo</strong> — las regiones D1–D3 del LSU evolucionan a tasa moderada. Para BEAST vas a necesitar un <strong>reloj lognormal relajado</strong> (ucld) casi con seguridad. Un reloj estricto no se sostiene en hongos distantes.</li>
+      <li><strong>Modelo de sustitución:</strong> con 28S de hongos tan diversos (Mucoromycetes a Dothideomycetes), <strong>GTR+G+I</strong> o <strong>GTR+G</strong> son los candidatos más probables. Dejá que ModelFinder (<code>-m MFP</code>) decida, pero anticipá que el parámetro de invariable sites (I) suele mejorar el ajuste en LSU por la estructura secundaria conservada.</li>
+      <li><strong>Heterogeneidad entre sitios:</strong> el 28S tiene regiones muy conservadas (centro del ribosoma) y regiones muy variables (D1–D3). Modelar con <strong>Γ</strong> (gamma) no es opcional — es obligatorio.</li>
+      <li><strong>Single-gene limit:</strong> con un solo gen ribosómico no vas a resolver relaciones profundas (por ej., la posición de Mucoromycetes respecto a los demás). No es un límite del software, es un límite <em>biológico</em> del marcador.</li>
+    </ul>
+    <div class="quote" style="margin-top:12px">
+      <strong>Implicancia directa en comandos:</strong> cuando corras IQ-TREE, <code>--seqtype DNA</code> se detecta solo. Pero cuando configures BEAUti, <strong>no</strong> elegís un modelo de codones — es un marcador no codificante — y tenés que decidir si particionás o no. Con 50 secuencias de ~850 bp, una sola partición es suficiente.
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>1.2 — Delimitación ingroup / outgroup para los árboles</h3>
+    <p>Recordá la hipótesis H₁ del caso: los géneros de Didymellaceae sobre madera de <em>Aquilaria</em> forman un linaje monofilético. Esto define el <strong>ingroup</strong>. El resto no es ruido — es material para outgroup, comparación ecológica o exclusión.</p>
+
+    <table class="bio-table">
+      <thead>
+        <tr><th>Rol en el análisis</th><th>Qué incluye</th><th>Familias / Órdenes</th><th>Clave filogenética</th></tr>
+      </thead>
+      <tbody>
+        <tr class="row-h1">
+          <td><span class="pill pill-teal">INGROUP (H₁)</span></td>
+          <td><em>Didymella, <em>Vacuiphoma</em>, <em>Paraphoma</em>, <em>Nothophoma</em>, <em>Microsphaeropsis</em>, <em>Ascochyta</em>, <em>Phomatodes</em>, <em>Sclerophomella</em>, <em>Macroventuria</em>, <em>Neosetophoma</em>, <em>Pyrenochaetopsis</em>, <em>Sphaeropsis</em>, <em>Paramicrosphaeropsis</em></em></td>
+          <td><strong>Didymellaceae</strong> (Pleosporales)</td>
+          <td>Son el core de la hipótesis. Si no forman un clado, H₁ se rechaza.</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-blue">CANDIDATO A OUTGROUP CERCANO</span></td>
+          <td><em>Leptosphaerulina</em> spp. (2 accesiones)</td>
+          <td><strong>Didymellaceae</strong> — Pleosporales</td>
+          <td>Mismo orden y familia pero NO citado en H₁. Hermano del ingroup por taxonomía.</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-blue">OUTGROUP LEJANO (Pleosporales no Didymellaceae)</span></td>
+          <td><em>Corynespora aquilariae, <em>Nigrograna</em> aquilariae, Hongkongmyces</em> spp. (2 acc.), <em>Paraconiothyrium</em> spp. (2 acc.), <em>Austropleospora, Queenslandipenidiella, Pseudopezicula, Melanops, Parascedosporium</em></td>
+          <td><strong>Corynesporascaceae, Nigrogranaceae, Lentitheciaceae, Didymosphaeriaceae, Melanommataceae, etc.</strong> — Pleosporales</td>
+          <td>Comparten orden pero están fuera de Didymellaceae. Útiles para enraizar el árbol de todo Pleosporales.</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-purple">COMPARACIÓN ECOLÓGICA</span></td>
+          <td>Sordariomycetes (7 acc.: <em>Hypoxylon, Seimatosporium, Seiridium, Apiospora, Ciliochorella, Neohelicosporium, Paralulworthia, Triangularia, Apiosordaria</em>)</td>
+          <td><strong>Xylariales, Amphisphaeriales, Apiosporaceae, Sordariales, Lulworthiales, Tubeufiales</strong></td>
+          <td>Ecología diferente (bambú, saprobios). No testean H₁. Como outgroup para el árbol general de Dothideomycetes sirven.</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-amber">EXCLUIDOS ECOLÓGICOS</span></td>
+          <td>Eurotiomycetes cueva (7 acc.: <em>Pseudogymnoascus</em> spp., <em>Gymnostellatospora</em> spp., <em>Pseudogeomyces, Penicillium</em>) + Leotiomycetes (<em>Myxotrichum</em> 1 acc.)</td>
+          <td><strong>Onygenales, Eurotiales, Helotiales</strong></td>
+          <td>Ambiente frío de cueva o suelo. No comparten ecología ni linaje cercano con el patosistema madera.</td>
+        </tr>
+        <tr class="row-contam">
+          <td><span class="pill pill-red">EXCLUIDOS — CONTAMINANTES</span></td>
+          <td><em>Mucor</em> spp. (3 acc.) + <em>Absidia</em> (1 acc.)</td>
+          <td><strong>Mucoraceae</strong> (Mucorales, Mucoromycetes)</td>
+          <td>Crecimiento en 24–48 h, hifas coenocíticas. Contaminantes de cultivo. NO entran al análisis filogenético de H₁.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="tension">
+      <strong>Atención:</strong> en la parte 1 elegiste un outgroup. Eso mismo tenés que pasarle a IQ-TREE (<code>-o</code>) y a BEAST (taxon set). La consistencia entre programas se evalúa. Si en IQ-TREE usás un outgroup y en BEAST otro, el enraizamiento va a diferir y H₁ no se puede evaluar igual.
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>1.3 — Sesgos y limitaciones que anticipar en el informe</h3>
+    <ul style="margin:12px 0 0 22px;line-height:1.7">
+      <li><strong>Outgroup lejano:</strong> si enraizás con Sordariomycetes o con Eurotiomycetes, el largo de rama del outgroup puede atraer raíces largas (LBA, <em>long-branch attraction</em>) y distorsionar la topología dentro de Didymellaceae. El outgroup óptimo de H₁ es <strong><em>Leptosphaerulina</em></strong> (misma familia, pero fuera del clado H₁).</li>
+      <li><strong>Gen único:</strong> con un solo locus concatenado, no podés medir discordancia entre genes. Cualquier conclusión sobre monofilia de H₁ es tentativa — necesitás al menos ITS + TEF1 + tubulina para un estudio filogenético robusto de Didymellaceae.</li>
+      <li><strong>Soporte bootstrap vs. PP:</strong> IQ-TREE da soportes UFBoot y SH-aLRT. BEAST da probabilidades posteriores (PP). No son lo mismo. UFBoot ≥ 95% o PP ≥ 0.95 son umbrales de referencia, pero en un solo gen los soportes altos pueden ser artefacto si el modelo está mal especificado.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECCIÓN 2: ÁRBOL TAXONÓMICO -->
+<!-- ============================================================ -->
+<section class="s-teal wide" id="taxonomia">
+  <div class="label" style="color:var(--primary)">Sección 2</div>
+  <h2>Árbol <span class="t">taxonómico</span> del muestreo</h2>
+  <p class="subtitle">Esto no es un árbol filogenético — es un <strong>árbol taxonómico</strong> que muestra la jerarquía Linneana y la distancia relativa entre familias. Te sirve para decidir outgroup, entender quién está cerca de quién, y anticipar qué clados deberían separarse en el árbol de genes.</p>
+
+  <!-- Árbol taxonómico renderizado como cladograma visual -->
+  <div class="tax-tree">
+    <ul class="cladogram">
+      <li><span class="l0">Fungi</span>
+        <ul>
+          <li class="c-mucor"><span class="l1">Mucoromycota</span>
+            <ul>
+              <li><span class="l2">Mucoromycetes</span>
+                <ul>
+                  <li><span class="l2">Mucorales</span>
+                    <ul>
+                      <li><span class="l3">Mucoraceae</span>
+                        <ul>
+                          <li><i><em>Mucor</em> aseptatophorus</i></li>
+                          <li><i><em>Mucor</em> phayaoensis</i></li>
+                          <li><i><em>Mucor</em> takensis</i></li>
+                          <li><i><em>Absidia</em> biappendiculata</i></li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li><span class="l1">Ascomycota</span>
+            <ul>
+              <li class="c-sordario"><span class="l2">Sordariomycetes</span>
+                <ul>
+                  <li><span class="l2">Sordariales</span>
+                    <ul>
+                      <li><span class="l3">Lasiosphaeriaceae / Chaetomiaceae</span>
+                        <ul>
+                          <li><i>Triangularia bambusae</i></li>
+                          <li><i>Apiosordaria backusii</i></li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                  <li><span class="l2">Xylariales</span>
+                    <ul>
+                      <li><span class="l3">Hypoxylaceae</span>
+                        <ul>
+                          <li><i><em>Hypoxylon</em> pseudofuscum</i></li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                  <li><span class="l2">Amphisphaeriales</span>
+                    <ul>
+                      <li><span class="l3">Sporocadaceae</span>
+                        <ul>
+                          <li><i>Seimatosporium cyprium</i></li>
+                          <li><i>Seiridium syzygii</i></li>
+                          <li><i>Ciliochorella savannica</i></li>
+                        </ul>
+                      </li>
+                      <li><span class="l3">Apiosporaceae</span>
+                        <ul>
+                          <li><i>Apiospora stipae</i></li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                  <li><span class="l2">Tubeufiales</span>
+                    <ul>
+                      <li><span class="l3">Tubeufiaceae</span>
+                        <ul>
+                          <li><i>Neohelicosporium fluviatile</i></li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                  <li><span class="l2">Lulworthiales</span>
+                    <ul>
+                      <li><span class="l3">Lulworthiaceae</span>
+                        <ul>
+                          <li><i>Paralulworthia candida</i></li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li class="c-leotio"><span class="l2">Leotiomycetes</span>
+                <ul>
+                  <li><span class="l2">Helotiales</span>
+                    <ul>
+                      <li><span class="l3">Myxotrichaceae / incertae sedis</span>
+                        <ul>
+                          <li><i>Myxotrichum tapetae</i></li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li class="c-eurotio"><span class="l2">Eurotiomycetes</span>
+                <ul>
+                  <li><span class="l2">Eurotiales</span>
+                    <ul>
+                      <li><span class="l3">Aspergillaceae</span>
+                        <ul>
+                          <li><i>Penicillium uttarakhandense</i></li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                  <li><span class="l2">Onygenales</span>
+                    <ul>
+                      <li><span class="l3">Pseudogymnoascaceae / Myxotrichaceae</span>
+                        <ul>
+                          <li><i>Pseudogymnoascus hyalinus</i></li>
+                          <li><i>Pseudogymnoascus appendiculatus</i></li>
+                          <li><i>Pseudogymnoascus verrucosus</i></li>
+                          <li><i>Pseudogeomyces hebridensis</i></li>
+                          <li><i>Gymnostellatospora frigida</i></li>
+                          <li><i>Gymnostellatospora canadensis</i></li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li><span class="l2">Dothideomycetes</span>
+                <ul>
+                  <li><span class="l2">Pleosporales</span>
+                    <ul>
+                      <li class="c-ingroup"><span class="l3">Didymellaceae</span>
+                        <ul>
+                          <li><span class="h1-clade"><b><i><em>Didymella</em> subrosea</i></b></span></li>
+                          <li><span class="h1-clade"><b><i><em>Didymella</em> acetosellae</i></b></span></li>
+                          <li><span class="h1-clade"><b><i><em>Didymella</em> corylicola</i></b></span></li>
+                          <li><span class="h1-clade"><b><i><em>Vacuiphoma</em> ferulae</i></b></span></li>
+                          <li><span class="h1-clade"><b><i><em>Vacuiphoma</em> laurina</i></b></span></li>
+                          <li><span class="h1-clade"><b><i><em>Paraphoma</em> ledniceana</i></b></span></li>
+                          <li><span class="h1-clade"><b><i><em>Nothophoma</em> infuscata</i></b></span></li>
+                          <li><span class="h1-clade"><b><i><em>Microsphaeropsis</em> fusca</i></b></span></li>
+                          <li><span class="h1-clade"><b><i><em>Ascochyta</em> pilosella</i></b></span></li>
+                          <li><span class="h1-clade"><b><i><em>Phomatodes</em> pilosa</i></b></span></li>
+                          <li><span class="h1-clade"><b><i><em>Sclerophomella</em> parvula</i></b></span></li>
+                          <li><span class="h1-clade"><b><i><em>Macroventuria</em> terrestris</i></b></span></li>
+                          <li><span class="h1-clade"><b><i><em>Neosetophoma</em> buxi</i></b></span></li>
+                          <li><span class="h1-clade"><b><i><em>Pyrenochaetopsis</em> kuksensis</i></b></span></li>
+                          <li><span class="h1-clade"><b><i><em>Sphaeropsis</em> chromolaenicola</i></b></span></li>
+                          <li><span class="h1-clade"><b><i><em>Paramicrosphaeropsis</em> ellipsoidea</i></b></span></li>
+                        </ul>
+                      </li>
+                      <li class="c-pleo"><span class="l3">Didymellaceae</span>
+                        <ul>
+                          <li><i><em>Leptosphaerulina</em> sisyrinchiicola</i></li>
+                          <li><i><em>Leptosphaerulina</em> obtusispora</i></li>
+                        </ul>
+                      </li>
+                      <li class="c-pleo"><span class="l3">Corynesporascaceae</span>
+                        <ul>
+                          <li><i><em>Corynespora</em> aquilariae</i></li>
+                        </ul>
+                      </li>
+                      <li class="c-pleo"><span class="l3">Nigrogranaceae</span>
+                        <ul>
+                          <li><i><em>Nigrograna</em> aquilariae</i></li>
+                        </ul>
+                      </li>
+                      <li class="c-pleo"><span class="l3">Didymosphaeriaceae</span>
+                        <ul>
+                          <li><i>Paraconiothyrium yunnanensis</i></li>
+                          <li><i>Paraconiothyrium ajrekarii</i></li>
+                        </ul>
+                      </li>
+                      <li class="c-pleo"><span class="l3">Lentitheciaceae</span>
+                        <ul>
+                          <li><i>Hongkongmyces aquisetosus</i></li>
+                          <li><i>Hongkongmyces brunneosporus</i></li>
+                        </ul>
+                      </li>
+                      <li class="c-pleo"><span class="l3">Melanommataceae</span>
+                        <ul>
+                          <li><i>Austropleospora ochracea</i></li>
+                        </ul>
+                      </li>
+                      <li class="c-pleo"><span class="l3">Microsphaeropsidaceae / incertae sedis</span>
+                        <ul>
+                          <li><i>Queenslandipenidiella californica</i></li>
+                        </ul>
+                      </li>
+                      <li class="c-pleo"><span class="l3">incertae sedis (Pleosporales)</span>
+                        <ul>
+                          <li><i>Pseudopezicula betulae</i></li>
+                          <li><i>Melanops fagicola</i></li>
+                          <li><i>Parascedosporium putredinis</i></li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>📥 Descargar secuencias</h3>
+    <p>Archivo de trabajo: <code style="color:var(--primary)">hongos_50_28S_refseq.fasta</code> — 50 secuencias parciales del gen 28S rRNA (LSU), ~850 pb cada una.</p>
+    <p style="margin:10px 0">Hacé clic en el botón de abajo para descargar el archivo FASTA completo listo para usar en MAFFT, IQ-TREE, BEAST 2, etc.</p>
+    <div style="text-align:center;margin:16px 0">
+      <button onclick="descargarFASTA()" style="background:var(--primary);color:#000;border:none;padding:14px 32px;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;transition:transform .12s,box-shadow .12s" onmouseover="this.style.transform='scale(1.03)';this.style.boxShadow='0 6px 24px rgba(40,213,177,.35)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+         Descargar hongos_50_28S_refseq.fasta
+      </button>
+    </div>
+    <details style="margin-top:12px;font-size:13px;color:var(--muted)">
+      <summary style="cursor:pointer;font-weight:600">Resumen del archivo</summary>
+      <ul style="margin:8px 0 0 18px;line-height:1.6">
+        <li><strong>50 secuencias</strong> — 16 H₁ ingroup + 2 outgroup cercano + 12 Pleosporales lejanos + 7 Sordariomycetes + 7 Eurotiomycetes cueva + 1 Leotiomycetes + 4 contaminantes Mucoromycetes + 1 Leotiomycetes cueva</li>
+        <li><strong>Marcador:</strong> LSU (28S) rRNA — gen nuclear ribosómico, subunidad grande</li>
+        <li><strong>Origen:</strong> Proyecto Kunming–<em>Aquilaria</em> — aislamientos de madera, bambú y suelo de cueva</li>
+        <li><strong>Formato:</strong> FASTA con cabeceras NG_* (GenBank TYPE material)</li>
+      </ul>
+    </details>
+  </div>
+
+  <div class="card">
+    <h3>Pregunta de control — antes de escribir comandos</h3>
+    <p>Mirá el árbol taxonómico de arriba. Si enraizás el análisis de H₁ con:</p>
+    <ul style="margin:12px 0 0 22px;line-height:1.7">
+      <li><strong><em>Leptosphaerulina</em></strong> (misma familia Didymellaceae) — ¿qué tan lejos queda del ingroup? ¿Comparten el ancestro común más reciente con H₁?</li>
+      <li><strong><em>Corynespora</em></strong> (Corynesporascaceae) — ¿es más lejano que <em>Leptosphaerulina</em>? ¿Por qué?</li>
+      <li><strong><em>Hypoxylon</em></strong> (Sordariomycetes) — ¿es un outgroup válido o está tan lejos que puede generar LBA?</li>
+    </ul>
+    <div class="warning" style="margin-top:12px">
+      <strong>Clave:</strong> el outgroup óptimo para evaluar H₁ (monofilia de Didymellaceae lignícolas) es otro miembro de Didymellaceae <strong>no listado en H₁</strong>. <em>Leptosphaerulina</em> cumple ese rol. Si usás un outgroup más lejano (todo Pleosporales o Sordariomycetes), el largo de rama puede forzar una raíz artificial que no refleje la verdadera relación.
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECCIÓN 3: RUTA B — LÍNEA POR LÍNEA (DESORDENADA) -->
+<!-- ============================================================ -->
+<section class="s-blue" id="pipeline">
+  <div class="label" style="color:var(--blue)">Sección 3</div>
+  <h2>Ruta B — <span class="b">Pipeline</span> línea por línea</h2>
+
+  <!-- ===== LÍNEA GRÁFICA DEL PIPELINE (DESORDENADA) ===== -->
+  <div class="card">
+    <h3>Línea gráfica del pipeline</h3>
+    <p class="small">Las tarjetas de abajo muestran los pasos del pipeline, pero están <strong>desordenadas</strong>. Asigná a cada tarjeta su posición correcta (1 al 7) y dibujá las flechas en la grilla.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;margin:20px 0;justify-content:center">
+      <!-- Tarjeta A: TreeAnnotator (posición real: 6) -->
+      <div style="background:var(--panel-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--pink);border-radius:10px;padding:14px 16px;text-align:center;min-width:115px">
+        <div style="font-size:12px;font-weight:700;color:var(--pink)">Tarjeta A</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">TreeAnnotator</div>
+        <div style="font-size:9px;color:var(--pink);margin-top:4px">-burnin 1000</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:1px">Árbol consenso MCC</div>
+        <div style="font-size:10px;color:var(--amber);margin-top:6px">Entra: .trees</div>
+        <div style="font-size:10px;color:var(--amber)">Sale: .tree anotado</div>
+      </div>
+      <!-- Tarjeta B: trimAl (posición real: 3) -->
+      <div style="background:var(--panel-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--purple);border-radius:10px;padding:14px 16px;text-align:center;min-width:115px">
+        <div style="font-size:12px;font-weight:700;color:var(--purple)">Tarjeta B</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">trimAl</div>
+        <div style="font-size:9px;color:var(--purple);margin-top:4px">-automated1</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:1px">Recorte de columnas</div>
+        <div style="font-size:10px;color:var(--amber);margin-top:6px">Entra: alineamiento</div>
+        <div style="font-size:10px;color:var(--amber)">Sale: recortado</div>
+      </div>
+      <!-- Tarjeta C: FASTA/Limpieza (posición real: 1) -->
+      <div style="background:var(--panel-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:10px;padding:14px 16px;text-align:center;min-width:115px">
+        <div style="font-size:12px;font-weight:700;color:var(--primary)">Tarjeta C</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">FASTA crudo</div>
+        <div style="font-size:9px;color:var(--amber);margin-top:4px">sed · awk</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:1px">Limpieza de cabeceras</div>
+        <div style="font-size:10px;color:var(--amber);margin-top:6px">Entra: refseq.fasta</div>
+        <div style="font-size:10px;color:var(--amber)">Sale: clean.fasta</div>
+      </div>
+      <!-- Tarjeta D: MAFFT (posición real: 2) -->
+      <div style="background:var(--panel-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--amber);border-radius:10px;padding:14px 16px;text-align:center;min-width:115px">
+        <div style="font-size:12px;font-weight:700;color:var(--amber)">Tarjeta D</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">MAFFT</div>
+        <div style="font-size:9px;color:var(--amber);margin-top:4px">--auto</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:1px">Alineamiento múltiple</div>
+        <div style="font-size:10px;color:var(--amber);margin-top:6px">Entra: fasta limpio</div>
+        <div style="font-size:10px;color:var(--amber)">Sale: alineado</div>
+      </div>
+      <!-- Tarjeta E: FigTree (posición real: 7) -->
+      <div style="background:var(--panel-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:10px;padding:14px 16px;text-align:center;min-width:115px">
+        <div style="font-size:12px;font-weight:700;color:var(--primary)">Tarjeta E</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">FigTree</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:4px">GUI · visual</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:1px">Comparar ML vs Bayes</div>
+        <div style="font-size:10px;color:var(--amber);margin-top:6px">Entra: .treefile + .tree</div>
+        <div style="font-size:10px;color:var(--amber)">Sale: figura / PDF</div>
+      </div>
+      <!-- Tarjeta F: IQ-TREE (posición real: 4) -->
+      <div style="background:var(--panel-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:2px solid var(--primary);border-radius:10px;padding:14px 16px;text-align:center;min-width:115px">
+        <div style="font-size:12px;font-weight:700;color:var(--primary)">Tarjeta F</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">IQ-TREE</div>
+        <div style="font-size:9px;color:var(--amber);margin-top:4px">-m MFP · -bb 1000</div>
+        <div style="font-size:9px;color:var(--primary);margin-top:1px">-o (outgroup)</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:1px">ML + UFBoot + aLRT</div>
+        <div style="font-size:10px;color:var(--amber);margin-top:6px">Entra: alin. recortado</div>
+        <div style="font-size:10px;color:var(--amber)">Sale: .treefile</div>
+      </div>
+      <!-- Tarjeta G: BEAST (posición real: 5) -->
+      <div style="background:var(--panel-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--blue);border-radius:10px;padding:14px 16px;text-align:center;min-width:115px">
+        <div style="font-size:12px;font-weight:700;color:var(--blue)">Tarjeta G</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">BEAST 2</div>
+        <div style="font-size:9px;color:var(--blue);margin-top:4px">-threads 4</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:1px">MCMC 10⁷ generaciones</div>
+        <div style="font-size:10px;color:var(--amber);margin-top:6px">Entra: XML (BEAUti)</div>
+        <div style="font-size:10px;color:var(--amber)">Sale: .log + .trees</div>
+      </div>
+    </div>
+
+    <!-- Grilla de orden -->
+    <h4 style="margin-top:10px">Asigná el orden correcto</h4>
+    <p class="small">Escribí la letra de la tarjeta (A–G) en el casillero que corresponda, del paso 1 al 7. La tarjeta C (FASTA crudo) ya está puesta como pista — es el punto de partida del pipeline.</p>
+    <div class="order-slots">
+      <div class="order-slot"><span class="num">1</span><span style="flex:1;font-size:15px;padding:6px 4px;color:var(--primary)">Tarjeta C — FASTA crudo / limpieza</span></div>
+      <div class="order-slot"><span class="num">2</span><input placeholder="Tarjeta ___ — ¿qué programa y por qué?"></div>
+      <div class="order-slot"><span class="num">3</span><input placeholder="Tarjeta ___ — …"></div>
+      <div class="order-slot"><span class="num">4</span><input placeholder="Tarjeta ___ — …"></div>
+      <div class="order-slot"><span class="num">5</span><input placeholder="Tarjeta ___ — … (pista: acá hay bifurcación ML ↔ bayesiano)"></div>
+      <div class="order-slot"><span class="num">6</span><input placeholder="Tarjeta ___ — …"></div>
+      <div class="order-slot"><span class="num">7</span><input placeholder="Tarjeta ___ — …"></div>
+    </div>
+    <p class="small" style="margin-top:8px">Después de ordenar, dibujá las flechas entre tarjetas. ¿Dónde se bifurca el pipeline? ¿Qué paso consume el mismo archivo de entrada que otro?</p>
+  </div>
+
+  <!-- ===== COMANDOS LÍNEA POR LÍNEA (REVOLTIJO TOTAL) ===== -->
+  <div class="card">
+    <h3>Ruta B — Comandos línea por línea</h3>
+    <p class="small">Todas las líneas de comando del pipeline están <strong>mezcladas abajo</strong>. No hay agrupación por programa ni por paso. Algunas líneas son <strong>señuelos</strong> (flags incorrectos, archivos equivocados, comandos incompletos). Tu tarea: (1) identificar qué líneas pertenecen a cada tarjeta, (2) ordenarlas, (3) descartar los señuelos, y (4) escribir el pipeline completo en la sección de Reconstrucción final.</p>
+
+    <div class="warning" style="margin:16px 0">
+      <strong>El archivo de partida es <code>hongos_50_28S_refseq.fasta</code>.</strong> El pipeline termina con los árboles listos para visualizar en FigTree. Cada archivo intermedio se genera en un paso y se consume en el siguiente. Hay 25 líneas en total — no todas son correctas.
+    </div>
+
+    <ol style="margin:16px 0 0 22px;color:var(--muted);font-size:13px;line-height:2.2" id="cmd-revoltijo">
+      <li><code>beast -threads 4 hongos_beast.xml</code></li>
+      <li><code>ls -lh hongos_beast.*</code></li>
+      <li><code>grep -c "^>" hongos_clean.fasta</code></li>
+      <li><code>treeannotator -heights mean hongos_beast.trees hongos_consenso.tree</code></li>
+      <li><code>iqtree2 -s hongos_trimal.fasta -m MFP -nt AUTO</code></li>
+      <li><code>beast -seed 12345 hongos_beast.xml</code></li>
+      <li><code>head -30 hongos_aln.fasta</code></li>
+      <li><code>grep -c "^>" hongos_aln.fasta</code></li>
+      <li><code>trimal -in hongos_aln.fasta -out hongos_trimal.fasta -automated1</code></li>
+      <li><code>iqtree2 -s hongos_trimal.fasta -m MFP+MERGE -nt AUTO</code></li>
+      <li><code>sed 's/ /_/g' hongos_50_28S_refseq.fasta | sed 's/[:,;()]/_/g' > hongos_clean.fasta</code></li>
+      <li><code>head -4 hongos_clean.fasta</code></li>
+      <li><code>grep -c "^>" hongos_50_28S_refseq.fasta</code></li>
+      <li><code>mafft --auto hongos_clean.fasta > hongos_aln.fasta</code></li>
+      <li><code>head -20 hongos_trimal.fasta</code></li>
+      <li><code>grep -c "^>" hongos_trimal.fasta</code></li>
+      <li><code>cat hongos_trimal.fasta.iqtree | grep -A 5 "Best-fit model"</code></li>
+      <li><code>ls -lh hongos_trimal.fasta.*</code></li>
+      <li><code>grep -c "^>" hongos_trimal.fasta</code></li>
+      <li><code>iqtree2 -s hongos_trimal.fasta -m MFP -bb 1000 -alrt 1000 -o Leptosphaerulina_sisyrinchiicola,Leptosphaerulina_obtusispora -nt AUTO</code></li>
+      <li><code>treeannotator -burnin 1000 -heights mean hongos_beast.trees hongos_consenso.tree</code></li>
+      <li><code>ls -lh hongos_consenso.tree</code></li>
+      <li><code>trimal -in hongos_aln.fasta -out hongos_trimal.fasta -gt 0.70 -cons 50</code></li>
+      <li><code>head hongos_trimal.fasta</code></li>
+      <li><code>mafft linsi hongos_clean.fasta > hongos_aln.fasta</code></li>
+    </ol>
+
+    <p class="small" style="margin-top:12px">Pista: el pipeline tiene 7 pasos (tarjetas C, D, B, F, G, A, E). La tarjeta F (IQ‑TREE) corre <strong>dos veces</strong> — primero el modelo, después el árbol. La tarjeta E (FigTree) no tiene comando de terminal. Contá cuántas líneas útiles deberían quedar si descartás los señuelos.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECCIÓN 4: ESPACIO PARA ESCRIBIR COMANDOS -->
+<!-- ============================================================ -->
+<section class="s-amber" id="comandos">
+  <div class="label" style="color:var(--amber)">Sección 4</div>
+  <h2>Redactá tus <span class="a">comandos</span></h2>
+  <p class="subtitle">Para cada paso, escribí la línea exacta que ejecutarías en la terminal de Ubuntu/WSL. Usá el archivo <code style="color:var(--primary)">hongos_50_28S_refseq.fasta</code> como punto de partida.</p>
+
+  <div class="worksheet card">
+    <h3>Paso 1 — Limpieza de cabeceras FASTA</h3>
+    <p class="small">Las cabeceras tienen espacios, caracteres especiales y duplicados parciales. Necesitás nombres cortos sin espacios para que MAFFT, IQ-TREE y BEAST no se quejen. Ejemplo: <code>NG_246939.1_Didymella_subrosea</code></p>
+    <label>Comando (sed, awk, o seqkit):</label>
+    <textarea class="cmd-area" rows="3" placeholder="sed o awk para limpiar cabeceras…"></textarea>
+  </div>
+
+  <div class="worksheet card">
+    <h3>Paso 2 — Alineamiento con MAFFT</h3>
+    <p class="small">Entrada: fasta limpio. Salida: alineamiento. Para LSU de 50 secuencias, un algoritmo rápido como FFT-NS-i alcanza.</p>
+    <label>Comando MAFFT:</label>
+    <textarea class="cmd-area" rows="2" placeholder="mafft --auto …"></textarea>
+  </div>
+
+  <div class="worksheet card">
+    <h3>Paso 3 — Recorte con trimAl</h3>
+    <p class="small">Entrada: alineamiento. Salida: alineamiento recortado (menos columnas, más informativas).</p>
+    <label>Comando trimAl:</label>
+    <textarea class="cmd-area" rows="2" placeholder="trimal -in … -out … -automated1"></textarea>
+  </div>
+
+  <div class="worksheet card">
+    <h3>Paso 4a — IQ-TREE: selección de modelo</h3>
+    <p class="small">IQ-TREE elige el mejor modelo de sustitución con ModelFinder. Ejecutalo primero, sin bootstrap. Cuando termine, leé el archivo <code>.iqtree</code> para ver el modelo ganador.</p>
+    <label>Comando IQ-TREE (solo modelo):</label>
+    <textarea class="cmd-area" rows="2" placeholder="iqtree2 -s … -m MFP …"></textarea>
+  </div>
+
+  <div class="worksheet card">
+    <h3>Paso 4b — IQ-TREE: árbol ML con bootstrap</h3>
+    <p class="small">Ahora corre el árbol completo con el mejor modelo (o dejá que IQ-TREE lo seleccione otra vez con <code>-m MFP</code>) y pedí bootstrap. Acá definís el outgroup.</p>
+    <label>Comando IQ-TREE (ML + UFBoot + outgroup):</label>
+    <textarea class="cmd-area" rows="3" placeholder="iqtree2 -s … -m … -bb 1000 -o …"></textarea>
+  </div>
+
+  <div class="worksheet card">
+    <h3>Paso 5 — BEAUti: configuración del XML</h3>
+    <p class="small">Acá no se escribe un comando de terminal, pero describí exactamente qué configurarías en BEAUti (o en el script BDSKY si usás modo texto):</p>
+    <label>Configuración de BEAUti (describí cada pestaña):</label>
+    <textarea class="cmd-area" rows="5" placeholder="1. Partitions: cargar hongos_trimal.fasta, una sola partición, modelo GTR+G (o el que haya elegido ModelFinder)&#10;2. Taxon sets: definir 'ingroup' (16 accesiones H₁) y 'outgroup' (<em>Leptosphaerulina</em> spp.)&#10;3. Site model: GTR+G, 4 categorías gamma, estimar frecuencias&#10;4. Clock model: Relaxed lognormal (ucld)&#10;5. Prior: Yule process o Birth-Death&#10;6. MCMC: 10⁷ generaciones, sample cada 1000, pre-burnin 0 (se descarta después)&#10;7. Guardar XML como hongos_beast.xml"></textarea>
+  </div>
+
+  <div class="worksheet card">
+    <h3>Paso 6 — BEAST 2: corrida MCMC</h3>
+    <p class="small">Entrada: XML. Salida: archivo .log (parámetros) y .trees (árboles muestreados).</p>
+    <label>Comando BEAST:</label>
+    <textarea class="cmd-area" rows="2" placeholder="beast -threads 4 …"></textarea>
+  </div>
+
+  <div class="worksheet card">
+    <h3>Paso 7 — TreeAnnotator: árbol consenso</h3>
+    <p class="small">Entrada: archivo .trees. Salida: árbol anotado con PP y alturas de rama.</p>
+    <label>Comando TreeAnnotator:</label>
+    <textarea class="cmd-area" rows="2" placeholder="treeannotator -burnin … -heights …"></textarea>
+  </div>
+
+  <div class="worksheet card">
+    <h3>Paso 8 — FigTree: visualización comparativa</h3>
+    <p class="small">Cargá ambos árboles (ML de IQ-TREE y bayesiano de TreeAnnotator) y compará los soportes nodales.</p>
+    <label>Describí cómo harías la comparación visual:</label>
+    <textarea class="cmd-area" rows="3" placeholder="En FigTree: Archivo > Cargar árbol…&#10;1. Cargar .treefile de IQ-TREE, colorear clados por soporte UFBoot ≥ 95%&#10;2. Cargar .tree de TreeAnnotator, mostrar PP ≥ 0.95 como grosor de rama&#10;3. Comparar nodo por nodo: ¿los mismos clados reciben alto soporte en ambos métodos?"></textarea>
+  </div>
+
+  <!-- PREGUNTAS DE CIERRE -->
+  <div class="card">
+    <h3>Preguntas de control (antes de entregar)</h3>
+    <ol style="margin:12px 0 0 22px;color:var(--muted);font-size:15px;line-height:1.8">
+      <li>¿El archivo que entra a IQ-TREE (para ML) es el mismo que entra a BEAST (para bayesiano)?</li>
+      <li>¿El outgroup que definiste en <code>-o</code> de IQ-TREE coincide exactamente con el taxon set "outgroup" en BEAUti? Si no, ¿por qué?</li>
+      <li>¿Qué archivo leerías para confirmar el mejor modelo de sustitución elegido por ModelFinder?</li>
+      <li>¿Qué archivo leerías para verificar que la cadena MCMC convergió?</li>
+      <li>Si en Tracer ves que el ESS de <code>treeHeight</code> es 45, ¿qué hacés? ¿Entregás el árbol igual, alargás la cadena o cambiás los priores?</li>
+      <li>¿Cómo distinguís visualmente en FigTree qué soportes vienen de UFBoot y cuáles de PP bayesiana?</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h3>Entregables</h3>
+    <p>Entregar un archivo en Word con pantallazos de las respuestas. Con el nombre del estudiante, cédula y enviarlo al correo <strong>consultor.ceitto@colmayor.edu.co</strong></p>
+    <ul style="margin:12px 0 0 22px;line-height:1.7">
+      <li><strong>Sección A:</strong> Orden del pipeline (numeración del 1 al 7 con indicación de bifurcaciones IQ-TREE ↔ BEAST)</li>
+      <li><strong>Sección B:</strong> Comandos completos (7 comandos / configuraciones)</li>
+      <li><strong>Sección C:</strong> Respuestas a las 6 preguntas de control</li>
+      <li><strong>Sección D:</strong> Árboles generados de IQ-TREE y BEAST con soportes respectivos</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  Segunda parte · Examen de Filogenética · 50 secuencias 28S · Caso Kunming–<em>Aquilaria</em> ·
+  Guía de referencia: <a href="https://wsl-localhost-ubuntu-home-julian-pr.vercel.app/" style="color:var(--primary)">BioInteractiva</a>
+</footer>
+
+<script>
+// Interactividad opcional para las tarjetas del puzzle
+document.querySelectorAll('.puzzle-card').forEach(card => {
+  card.addEventListener('click', function() {
+    this.classList.toggle('correct');
+  });
+});
+
+// Descarga del archivo FASTA
+function descargarFASTA() {
+  const fasta = `>NG_247218.1 Parascedosporium putredinis CBS 102083 28S rRNA gene, partial sequence; from TYPE material
+AAAGAAACCAACAGGGATTGCCTCAGTAACGGCGAGTGAAGCGGCAACAGCTCAAATTTG
+AAATCTGGTCGCCTGTGCGGCCCGAGTTGTAATTTGAAGAGGATGCTTTTGACAATGTGC
+CTTCCGAGTTCCCTGGAATGGGACGCCATAGAGGGTGAGAGCCCCGTATGGTAGGTTACT
+GCGTCTCTGTAAAGCTCCTTCGACGAGTCGAGTAGTTTGGGAATGCTGCTCAAAATGGGA
+GGTAAACCCCTTCTAAAGCTAAATATTGGCCAGAGACCGATAGCGCACAAGTAGAGTGAT
+CGAAAGATGAAAAGCACTTTGAAAAGAGAGTTAAACAGCACGTGAAATTGTTGAAAGGGA
+AGCGTTTGCGACCAGACTTGTGCTCGTCGAATCAGCCGTCGCTCGTCGGCGGTGCATTTC
+GGCGGGCTCAGGCCAGCATCAGTTCGCTGTAGGGGGAGAAAGGCGGAAGGAATGTGGCTC
+TTCGGAGTGTTATAGCCTACCGTATAATACCCCTCGGTGGACTGAGGACCGCGCATCTGC
+AAGGATGCTGGCGTAATGGTTGTCAGCGACCCGTCTTGAAACACGGACCAAGGAGTCGTC
+CTAATATGCGAGTGTTCGGGTGTAAAACCCCTACGCGTAATGAAAGTGAACGGAGGTGAG
+AGCTTCGGCGCATCATCGACCGATCCTGATGTTCTCGGATGGATTTGAGTATGAGCATAT
+TGGGCCGGACCCGAAAGAAGGTGAACTATGCCTGTATAGGGTAAAGCCAGAGGAAACTCT
+GGTGGAGGCTCGCAGCGGTTCTGACGTGCAAATCGATCGTCAAATATGGGCATGGGGGCG
+AAAGACTAATCGAACCTTCTAGTAGCTGGTTTCCGCCGAAGTTTCCCTCAGGATAGCAGT
+GTTGAATTCTCAGTTTTATGAGGTAAAGCGAATGATTAGGGACTCGGGGGCGCTATTAAG
+CCTTCATCCATTCTCAAACTTTAAATATGTAAGAAGCCCTTGTTACTTAATTGAACGTGG
+GCATTCGAATGTATCAACACTAGTGGGCCATTTTTGGTAAGCAGAACTGGCGATGCGGGA
+TGAACCGATCGCGGGGATAAGGTGCCGGAGTGGACGCTCATCAGACACCACAAAAGGTGT
+TATCACATCTTGACAGCAGGACGGTGGCCATGGAAGTCGGAATCCGCTAAGGA
+>NG_247216.1 Myxotrichum tapetae CBS 152303 28S rRNA gene, partial sequence; from TYPE material
+TGGCCCCCTCGGGGCCCGAGTTGTAATTTGGAGAAGATGCTTCGGGTGTGGTCCCGGCCT
+AAGTTCCTTGGAACAGGACGTCACAGAGGGTGAGAATCCCGTACGTGGCCGGTGGCCGCC
+CCCGTGTGAAGCTCTTTCGACGAGTCGAGTTGTTTGGGAATGCAGCTCAAAATGGGTGGT
+AAATTTCATCTAAAGCTAAATATTGGCCAGAGACCGATAGCGCACAAGTAGAGTGATCGA
+AAGATGAAAAGCACTTTGGAAAGAGAGTTAAACAGTACGTGAAATTGTTGAAAGGGAAGC
+GCTTGCAACCAGACTTGCGCGCGGTTGATCATCCGGTGTTCTCACCGGTGCACTCGACCG
+CGCGCAGGCCAGCATCGGTTTGGGCGGCTGGATAAAGGCCCTAGGAAAGTGGCCCCCCTC
+GGGGGGTGTTATAGCCTAGGGCGCAATGCAGCCCGCCCGGACCGAGGACCGCGCTCCGGC
+TAGGATGCTGGCGTAATGGTTGTCAGCGACCCGTCTTGAAACACGGACCAAGGAGTCTAA
+CATCTATGCGAGTGTTTGGGTGCCAAACCCATACGCGTAATGAAAGTGAACGGAGGTGAG
+AGCCCTTCAGGGTGCATCATCGACCGATCCTGATGTCTTCGGATGGATTTGAGTAAGAGC
+ATAGCTGTTGGGACCCGAAAGATGGTGAACTATGCCTGAATAGGGTGAAGCCAGAGGAAA
+CTCTGGTGGAGGCTCGCAGCGGTTCTGACGTGCAAATCGATCGTCAAATTTGGGCATAGG
+GGCGAAAGACTAATCGAACCATTGCAGCCGCTAGGTGGTTAAGAGGCGGCCGAGAGGCCG
+TGCTTAGTGGTGATCGCACCGCAACACTGTCAAATTGCGGGGACGTCCTGTTGATGTATA
+GCTACCGCAGCCCGGCCGTAAGGAGGGTGCGCACCAGGGTAGTGACCTCGGGGATGGTAA
+CAACGCTATACGGAAGGATACCTGCAGCCAAACCCCGTCCCGCGGGGCGCAGTTCACAGA
+CTAGATGTCAGTGGGCGGGAGCGCGAAGCTCCTGCTTAAGTTATAGTCGGTCCCCTAGGT
+AA
+>NG_247205.1 <em>Corynespora</em> aquilariae ZHKUCC 23-0071 28S rRNA gene, partial sequence; from TYPE material
+TTTTTGTGTACCCCCCGGGGGAAGATAGCATATCAATAAGCGGAGGAAAAGAAACCAACA
+GGGATTGCCCTAGTAACGGCGAGTGAAGCGGCAACAGCTCAAATTTGAAATCTGGCCCTC
+TAGGGGGTCCGAGTTGTAATTTGCAGAGGGTGCTTTGGCGTTGGCGGCGGTCTAAGTTCC
+TTGGAACAGGACGTCACAGAGGGTGAGAATCCCGTATGTGGTCGCCGGCCTTCGCCGTGT
+AAAGCCCCTTCGACGAGTCGAGTTGTTTGGGAATGCAGCTCTAAATGGGAGGTAAATTTC
+TTCTAAAGCTAAATACTGGCCAGAGACCGATAGCGCACAAGTAGAGTGATCGAAAGATGA
+AAAGCACTTTGGAAAGAGAGTCAAAAAGCACGTGAAATTGTTGAAAGGGAAGCGCTTGCA
+GCCAGACTTGCCTGTAGTTGCTCAGCCGGGCTCCGGCCCGGTGCACTCTTCTGCGGGCAG
+GCCAGCATCAGTTCGGGCGGCCGGATAAAGACCTCTGTCACGTACCTCCCTTCGGGGAGG
+CCTTATAGGGGAGGTGAAATGCGGCCAGTCCGGACTGAGGTCCGCGCATCTGCTAGGATG
+CTGGCGTAATGGCTGTAAGCGGCCCGTCTTGAAACACGGACCAAGGAGTCTAACATCTAT
+GCGAGTGTTTGGGTGTCAAGCCCGAGCGCGTAATGAAAGTGAACGGAGGTGGGAACCCCT
+CGGGGTGCACCATCGACCGATCCTGATGTCTTCGGATGGATTTGAGTAAGAGCATAGCTG
+TTGGGACCCGAAAGATGGTGAACTATGCTTGAATAGGGTGAAGCCAGAGGAAACTCTGGT
+GGAGGCTCGCAGCGGTTCTGACGTGCAAATCGATCGTCAAATTTGGGCATAGGGGCGAAA
+GACTAATCGAACCATCTAGTAGCTGGTTCCTGCCGAGTCCCCCCCCCTCAGAGATTAAAA
+AA
+>NG_247204.1 <em>Nigrograna</em> aquilariae ZHKUCC 23-0070 28S rRNA gene, partial sequence; from TYPE material
+ACACAACATAAGCGGAGGAAAGAAACCAACAGGGATTGCCCTAGTAACGGCGAGTGAAGC
+GGCAACAGCTCAAATTTGAAATCTGGCTCTTTCAGAGTCCGAGTTGTAATTTGTAGAGGG
+CGCTTTGGTGTTGGCTGCGGTCTAAGTTCCTTGGAACAGGACGTCACAGAGGGTGAGAAT
+CCCGTACGTGGTCGACAGTCTTCACCGTGTAAAGCCCCTTCGACGAGTCGAGTTGTTTGG
+GAATGCAGCTCTAAATGGGAGGTAAATTTCTTCTAAAGCTAAATATTGGCCAGAGACCGA
+TAGCGCACAAGTAGAGTGATCGAAAGATGAAAAGCACTTTGGAAAGAGAGTCAAAAAGCA
+CGTGAAATTGTTGAAAGGGAAGCGCTTGCAACCAGACTTGCCTGTAGTTGCTCATCCGGT
+CTCCTGACCGGTGCACTCTTCTATAGGCAGGCCAGCATCAGTTTGGGCGGCTAGATAAAG
+ACCTCTATCACGTATCTTCCTTCGGGATGACCTTATAGGGGAGGTGTAATGTAGCCAGCC
+TGGATTGAGGTCCGCGCATCTGCTAGGATGCTGGCGTAATGGTTGTAAGCGGCCCGTCTT
+GAAACACGGACCAAGGAGTCTAACATCTATGCGAGTGTTTGGGTGTAAAGCCCGGGCGCG
+CAATGAAAGTGAACGGAGGTGGGAACCCTTACGGGTGCACCATCGACCGATCCTGATGTC
+TTCGGATGGATTTGAGTAAGAGCATAGCTGTTGGGACCCGAAAGATGGTGAACTATGCCT
+GAATAGGGTGAAGCCAGAGGAAACTCTGGTGGAGGCTCGCAGCGGTTCTGACGTGCAAAT
+CGATCGTCAAATTTGGGCATAGGGGCGAAAGACTAATCGAACTATCTAGTAGCTGGTTCC
+TGCCGAGTTTCTCCTCTACGAGAGAACCAAAACGA
+>NG_247200.1 Queenslandipenidiella californica CBS 150796 28S rRNA gene, partial sequence; from TYPE material
+AACGGCGAGTGAAGCGGCAGCAGCTCAAATTTGAAATCTGGCGTCAGCCCGAGTTGTAAT
+TTGCAGAGGATGCTTCTGGGCAGCGGCCGGTCCAAGTTCCTTGGAACAGGACGTCAGAGA
+GGGTGAGAATCCCGTCTGGCCGGCTGGCACCCGTCACGTAGCTCCTTCGACGAGTCGAGT
+TGTTTGGGAATGCAGCTCTAAATGGGAGGTAAATTTCTTCTAAAGCTAAATACCGGCCGG
+AGACCGATAGCGCACAAGTAGAGTGATCGAAAGATGAAAAGCACTTTGGAAAGAGAGTTA
+AACAGCACGTGAAATTGTTGAAAGGGAAGCGCATGCTACCAGACGTGTCGGCGGTGTTCC
+GCCGGTCTTCTGACCGGTCTACTCGCCGCCGGCAGGCCAGCATCGTCTGGGGCCGCCCGA
+CAAAGGCTCGGGGGCGGGGTTCGCCCTGTCCCCTTGCACAATAGGGCGCGCCTCGGGCGA
+GGTCCGCGCTTCGGCTAGGATGCTGGCGTAATGGTAGCCTGCGGCCCGTCTTGAAACACG
+GACCAAGGAGTCGACCATCTGTGCGAGTGTTCGGGTATCACACCCCAACGCGCAATGAAA
+GTGAACGGAGGTGGGTGCATCATCGACCGATCCTGATGTCTTCGGATGGATTTGAGTAAG
+AGCATGGCTGGTCGGACCCGAAAGATGGTGAACTATGCCTGAATAGGGTGAAGCCAGAGG
+AAACTCTGGTGGAGGCTCGCAGCGGTTCTGACGTGCAAATCGATCGTCAAATTTGGGTAT
+AGGGGCGAAAGACTAATCGAACCATCGACGAGAACGCTATTAGGTGGTTAAGAGGCTGTC
+GGGCAGCCTAGTCCCTCCGGGGATTACATCGCTAAATTGCGGGGACCTCTCCTTTGGCCG
+AAGCGGCCGTCCGTCCAGGCGAAAGCCGGGGCGGGCGCCCGGGTTAACCACCCGGGGCAG
+GGCCGCCCTTCAGCTCGGAGACAATCACGCAGCCAAGTCCTAAGCCTCTCGCGCGAGAGG
+GACGGATGCAGTTCACTGACTAAATAGCGATGGGCGCCGCGCGGGCGCTTAAG
+>NG_247195.1 Pseudogymnoascus hyalinus CBS 106.13 28S rRNA gene, partial sequence; from TYPE material
+ATTACCTCAGTAACGGCGAGTGAAGCGGTAACAGCTCAAATTTGAAATCTGGCCTCACGG
+TCCGAGTTGTAATTTGTAGAGGATGCTTCGAGCATGGTCTGGCCTAAGTTCCTTGGAACA
+GGACGTCATAGAGGGTGAGAATCCCGTATGCGGCCAGGTGCCTACGCTCATGTGAAGCTC
+CTTCGACGAGTCGAGTTGTTTGGGAATGCAGCTCAAAATGGGTGGTAAATTTCATCTAAA
+GCTAAATATTGGCCAGAGACCGATAGCGCACAAGTAGAGTGATCGAAAGATGAAAAGCAC
+TTTGGAAAGAGAGTTAAACAGTACGTGAAATTGTTGAAAGGGAAGCGCTTGCAACCAGAC
+TTGCGCGCGGCCGATCATCCGGTGTTCTCACCGGTGCACTCGGCCGTGCTCAGGCCAGCA
+TCGGTTTTGGCGGCTGGATAAAGGCCCTAGGAATGTAGCTCCTCTCGGGGAGTGTTATAG
+CCTAGGGTGCAATGCAGCCTGCCGGGACCGAGGACCGCGCTTCGGCTAGGATGCTGGCGT
+AATGGTTGTAAGCGGCCCGTCTTGAAACACGGACCAAGGAGTCTAACATCTATGCGAGTG
+TTTGGGTGTCAAACCCATACGCGTAATGAAAGTGAACGGAGGTGAGAACCCTTAAGGGTG
+CATCATCGACCGATCCTGATGTCTTCGGAAGGATTTGAGTAAGAGCATAGCTGTTGGGAC
+CCGAAAGATGGTGAACTATGCCTGAATAGGGTGAAGCCAGAGGAAACTCTGGTGGAGGCT
+CGCAGCGGTTCTGACGTGCAAATCGATCGTCAAATTTGGGTATAGGGGCGAAAGACTAAT
+CGAACCATCTAGTAGCTGGTTCCTGCCGAAGTTTCCCTCAGGATAGCAGTGTTGAATTCA
+GTTTTATGAGGTAAAGCGAATGATTAGAGGCCTTGGGGTTGAAACAACCTTAACCTATTC
+TCAAACTTTAAATATGTAAGAAGTCCTTGTTACTTAATTGAACGTGGACATTCGAATGTA
+CCAACACTAGTGGGCCATTTTTGGTAAGCAGAACTGGCGATGCGGGATGAACCGAACGCG
+GAGTTAAGGTGCCGGAATATACGCTCATCAGACACCACAAAAGGTGTTAGTTCATCTAGA
+CAGCAGGACGGTGGCCATGGAAGTCGGAATCCGCTAAGGAGTGTGTAACAACTCACCTGC
+CGAATGAACTAGCCCTGAAAATGGATGGCGCTTAAGCGTATTACCCATACTCCGCCGCCA
+GGGTAGAAACGATGCCCTGGCGAGTAGGCAGGCGTGGGGGTCAGTGACGAAGCCT
+>NG_247192.1 Pseudogymnoascus appendiculatus UAMH 10509 28S rRNA gene, partial sequence; from TYPE material
+ACGGCGAGTGAAGCGGTAACAGCTCAAATTTGAAATCTGGCCTCACGGTCCGAGTTGTAA
+TTTGTAGAGGATGCTTCGAGCATGGTCTGGCCTAAGTTCCTTGGAACAGGACGTCATAGA
+GGGTGAGAATCCCGTATGCGGCCAGGTGCCTACGCTCATGTGAAGCTCCTTCGACGAGTC
+GAGTTGTTTGGGAATGCAGCTCAAAATGGGTGGTAAATTTCATCTAAAGCTAAATATTGG
+CCAGAGACCGATAGCGCACAAGTAGAGTGATCGAAAGATGAAAAGCACTTTGGAAAGAGA
+GTTAAACAGTACGTGAAATTGTTGAAAGGGAAGCGCTTGCAACCAGACTTGCGCGCGGCC
+GATCATCCGGTGTTCTCACCGGTGCACTCGGCCGTGCTCAGGCCAGCATCGGTTTTGGCG
+GCTGGATAAAGGCCCTAGGAATGTAGCTCCTCTCGGGGAGTGTTATAGCCTAGGGTGCAA
+TGCAGCCTGCTGGGACCGAGGACCGCGCTTCGGCTAGGATGCTGGCGTAATGGTTGTAAG
+CGGCCCGTCTTGAAACACGGACCAAGGAGTCTAACATCTATGCGAGTGTTTGGGTGTCAA
+ACCCATACGCGTAATGAAAGTGAACGGAGGTGAGAACCCTTAAGGGTGCATCATCGACCG
+GTCCTGAAGTTTACGGAAGGATCTGAGTAAGAGCATAGCTGTTGGGACCCGAAAGATGGT
+GAACTATGCCTGAATAGGGTGAAGCCAGAGGAAACTCTGGTGGAGGCTCGCAGCGGTTCT
+GACGTGCAAATCGATCGTCAAATTTGGGTATAGGGGCGAAAGACTAATCGAACCATCTAG
+TAGCTGGTTCCTGCCGAAGTTTCCCTCAGGATAGCAGTGTTGAATTCAGTTTTATGAGGT
+AAAGCGAATGATTAGAGGCCTTGGGGTTGAAACAACCTTAACCTATTCTCAAACTTTAAA
+TATGTAAGAAGTCCTTGTTACTTAATTGAACGTGGACATTCGAATGTACCAACACTAGTG
+GGCCATTTTTGGTAAGCAGAACTGGCGATGCGGGATGAACCGAACGCGGAGTTAAGGTGC
+CGGAATATACGCTCATCAGACACCACAAAAGGTGTTAGTTCATCTAGACAGCAGGACGGT
+GGCCATGGAAGTCGGAATCCGCTAAGGAGTGTGTAACAACTCACCTGCCGAATGAACTAG
+CCCTGAAAATGGATGGCGCTTAAGCGTATTACCCATA
+>NG_247191.1 Pseudogymnoascus verrucosus UAMH 10579 28S rRNA gene, partial sequence; from TYPE material
+TCAGTAACGGCGAGTGAAGCGGTAACAGCTCAAATTTGAAATCTGGCCTCACGGTCCGAG
+TTGTAATTTGTAGAGGATGCTTCGAGCATGGTCTGGCCTAAGTTCCTTGGAACAGGACGT
+CATAGAGGGTGAGAATCCCGTATGCGGCCAGGTGCCTACGCTCATGTGAAGCTCCTTCGA
+CGAGTCGAGTTGTTTGGGAATGCAGCTCAAAATGGGTGGTAAATTTCATCTAAAGCTAAA
+TATTGGCCAGAGACCGATAGCGCACAAGTAGAGTGATCGAAAGATGAAAAGCACTTTGGA
+AAGAGAGTTAAACAGTACGTGAAATTGTTGAAAGGGAAGCGCTTGCAACCAGACTTGCGC
+GCGGCCGATCATCCGGTGTTCTCACCGGTGCACTCGGCCGTGCTCAGGCCAGCATCGGTT
+TTGGCGGCTGGATAAAGGCCCTAGGAATGTAGCTCCTCTCGGGGAGTGTTATAGCCTAGG
+GTGCAATGCAGCCTGCTGGGACCGAGGACCGCGCTTCGGCTAGGATGCTGGCGTAATGGT
+TGTAAGCGGCCCGTCTTGAAACACGGACCAAGGAGTCTAACATCTATGCGAGTGTTTGGG
+TGTCAAACCCATACGCGTAATGAAAGTGAACGGAGGTGAGAACCCTTAAGGGTGCATCAT
+CGACCGGTCCTGAAGTTTACGGAAGGATCTGAGTAAGAGCATAGCTGTTGGGACCCGAAA
+GATGGTGAACTATGCCTGAATAGGGTGAAGCCAGAGGAAACTCTGGTGGAGGCTCGCAGC
+GGTTCTGACGTGCAAATCGATCGTCAAATTTGGGTATAGGGGCGAAAGACTAATCGAACC
+ATCTAGTAGCTGGTTCCTGCCGAAGTTTCCCTCAGGATAGCAGTGTTGAATTCAGTTTTA
+TGAGGTAAAGCGAATGATTAGAGGCCTTGGGGTTGAAACAACCTTAACCTATTCTCAAAC
+TTTAAATATGTAAGAAGTCCTTGTTACTTAATTGAACGTGGACATTCGAATGTACCAACA
+CTAGTGGGCCATTTTTGGTAAGCAGAACTGGCGATGCGGGATGAACCGAACGCGGAGTTA
+AGGTGCCGGAATATACGCTCATCAGACACCACAAAAGGTGTTAGTTCATCTAGACAGCAG
+GACGGTGGCCATGGAAGTCGGAATCCGCTAAGGAATGTGTAACAACTCACCTGCCGAATG
+AACTAGCCCTGAAAATGGATGGCGCTTAAGCGTATTACCCATACTCCGCCGCCAGGGTAG
+AAACGATGCCCTGGCGAGTAGGCAGGCGTGGGGGTCA
+>NG_247190.1 Gymnostellatospora frigida UAMH 9304 28S rRNA gene, partial sequence; from TYPE material
+GATTACCTCAGTAACGGCGAGTGAAGCGGTAACAGCTCAAATTTGAAATCTGGCCTCACG
+GTCCGAGTTGTAATTTGTAGAGGATGCTTCGAGCATGGTCTGGCCTAAGTTCCTTGGAAC
+AGGACGTCATAGAGGGTGAGAATCCCGTATGCGGTCAGGTGCCTACGCTCATGTGAAGCT
+CCTTCGACGAGTCGAGTTGTTTGGGAATGCAGCTCAAAATGGGTGGTAAATTTCATCTAA
+AGCTAAATATTGGCCAGAGACCGATAGCGCACAAGTAGAGTGATCGAAAGATGAAAAGCA
+CTTTGGAAAGAGAGTTAAACAGTACGTGAAATTGTTGAAAGGGAAGCGCTTGCAACCAGA
+CTTGCGCGCGGCCGATCATCCGGTGTTCTCACCGGTGCACTCGGCCGTGCTCAGGCCAGC
+ATCGGTTTTGGCGGCTGGATAAAGGCCCCAGGAATGTGGCTCCTCTCGGGGAGTGTTATA
+GCCTGGGGTGCAATGCAGCCTGCTGGGACCGAGGACCGCGCTTCGGCTAGGATGCTGGCG
+TAATGGTTGTAAGCGGCCCGTCTTGAAACACGGACCAAGGAGTCTAACATCTATGCGAGT
+GTTTGGGTGTCAAACCCATACGCGTAATGAAAGTGAACGGAGGTGAGAACCCTTAAGGGT
+GCATCATCGACCGATCCTGATGTCTTCGGAAGGATTTGAGTAAGAGCATAGCTGTTGGGA
+CCCGAAAGATGGTGAACTATGCCTGAATAGGGTGAAGCCAGAGGAAACTCTGGTGGAGGC
+TCGCAGCGGTTCTGACGTGCAAATCGATCGTCAAATTTGGGTATAGGGGCGAAAGACTAA
+TCGAACCATCTAGTAGCTGGTTCCTGCCGAAGTTTCCCTCAGGATAGCAGTGTTGAATTC
+AGTTTTATGAGGTAAAGCGAATGATTAGAGGCCTTGGGGTTGAAACAACCTTAACCTATT
+CTCAAACTTTAAATATGTAAGAAGTCCTTGTTACTTAATTGAACGTGGACATTCGAATGT
+ACCAACACTAGTGGGCCATTTTTGGTAAGCAGAACTGGCGATGCGGGATGAACCGAACGC
+GGAGTTAAGGTGCCGGAATATACGCTCATCAGACACCACAAAAGGTGTTAGTTCATCTAG
+ACAGCAGGACGGTGGCCATGGAAGTCGGAATCCGCTAAGGAATGTGTAACAACTCACCTG
+CCGAATGAACTAGCCCTGAAAATGGATGGCGCTTAAGCG
+>NG_247189.1 Gymnostellatospora canadensis UAMH 8899 28S rRNA gene, partial sequence; from TYPE material
+ATTACCTCAGTAACGGCGAGTGAAGCGGTAACAGCTCAAATTTGAAATCTGGCCTCACGG
+TCCGAGTTGTAATTTGTAGAGGATGCTTCGAGCATGGTCTGGCCTAAGTTCCTTGGAACA
+GGACGTCATAGAGGGTGAGAATCCCGTATGCGGTCAGGTGCCTACGCTCATGTGAAGCTC
+CTTCGACGAGTCGAGTTGTTTGGGAATGCAGCTCAAAATGGGTGGTAAATTTCATCTAAA
+GCTAAATATTGGCCAGAGACCGATAGCGCACAAGTAGAGTGATCGAAAGATGAAAAGCAC
+TTTGGAAAGAGAGTTAAACAGTACGTGAAATTGTTGAAAGGGAAGCGCTTGCAACCAGAC
+TTGCGCGCGGCCGATCATCCGGTGTTCTCACCGGTGCACTCGGCCGTGCTCAGGCCAGCA
+TCGGTTTTGGCGGCTGGATAAAGGCCCCAGGAATGTGGCTCCTCTCGGGGAGTGTTATAG
+CCTGGGGTGCAATGCAGCCTGCTGGGACCGAGGACCGCGCTTCGGCTAGGATGCTGGCGT
+AATGGTTGTAAGCGGCCCGTCTTGAAACACGGACCAAGGAGTCTAACATCTATGCGAGTG
+TTTGGGTGTCAAACCCATACGCGTAATGAAAGTGAACGGAGGTGAGAACCCTTAAGGGTG
+CATCATCGACCGATCCTGATGTCTTCGGAAGGATTTGAGTAAGAGCATAGCTGTTGGGAC
+CCGAAAGATGGTGAACTATGCCTGAATAGGGTGAAGCCAGAGGAAACTCTGGTGGAGGCT
+CGCAGCGGTTCTGACGTGCAAATCGATCGTCAAATTTGGGTATAGGGGCGAAAGACTAAT
+CGAACCATCTAGTAGCTGGTTCCTGCCGAAGTTTCCCTCAGGATAGCAGTGTTGAATTCA
+GTTTTATGAGGTAAAGCGAATGATTAGAGGCCTTGGGGTTGAAACAACCTTAACCTATTC
+TCAAACTTTAAATATGTAAGAAGTCCTTGTTACTTAATTGAACGTGGACATTCGAATGTA
+CCAACACTAGTGGGCCATTTTTGGTAAGCAGAACTGGCGATGCGGGATGAACCGAACGCG
+GAGTTAAGGTGCCGGAATATACGCTCATCAGACACCACAAAAGGTGTTAGTTCATCTAGA
+CAGCAGGACGGTGGCCATGGAAGTCGGAATCCGCTAAGGAATGTGTAACAACTCACCTGC
+CGAATGAACTAGCCCTGAAAATGGATGG
+>NG_247188.1 Pseudogeomyces hebridensis CBS 360.66 28S rRNA gene, partial sequence; from TYPE material
+GATTACCTCAGTAACGGCGAGTGAAGCGGTAACAGCTCAAATTTGAAATCTGGCCTCACG
+GCCCGAGTTGTAATTTGTAGAGGATGCTTCGAGCATGGTCCGGCCTAAGTTCCTTGGAAC
+AGGACGTCATAGAGGGTGAGAATCCCGTATGCGGCCGGGTGCCTACGCTTATGTGAAGCT
+CCTTCGACGAGTCGAGTTGTTTGGGAATGCAGCTCAAAATGGGTGGTAAATTTCATCTAA
+AGCTAAATATTGGCCAGAGACCGATAGCGCACAAGTAGAGTGATCGAAAGATGAAAAGCA
+CTTTGGAAAGAGAGTTAAACAGTACGTGAAATTGTTGAAAGGGAAGCGCTTGCGACCAGA
+CTTGCGTGCGGCCGATCATCCGGTGTTCTCACCGGTGCACTCGGCCGCGCTCAGGCCAGC
+ATCGGTTTCGGCGGCTGGATAAAGGCCCTAGGAATGTGGCTCCTCTCGGGGAGTGTTATA
+GCCTAGGGTGCAATGCAGCCCGCTGGGACCGAGGACCGCGCTTCGGCTAGGATGCTGGCG
+TAATGGTCGTAAGCGGCCCGTCTTGAAACACGGACCAAGGAGTCTAACATCTATGCGAGT
+GTTTGGGTGTCAAACCCATACGCGTAATGAAAGTGAACGGAGGTGAGAACCCTTAAGGGT
+GCATCATCGACCGATCCTGATGTCTTCGGAAGGATTTGAGTAAGAGCATAGCTGTTGGGA
+CCCGAAAGATGGTGAACTATGCCTGAATAGGGTGAAGCCAGAGGAAACTCTGGTGGAGGC
+TCGCAGCGGTTCTGACGTGCAAATCGATCGTCAAATTTGGGTATAGGGGCGAAAGACTAA
+TCGAACCATTAGGGCGTGCTGCTAGGTGGTTGAGAGGCGGCTCAAAGTGCCGTCTAGTCC
+CGACGCCGGGGCGACACTGTCAAATTGCGGGGACATCCTTAGAGCCTAGACTACCGCAGC
+CTTCCCGAAAGGGGGGTGCGCACCAGGGTAACGACCTCGGGTATGGTAACAACGTCTAGG
+ATTGGACAATCCGCAGCCAAGCCCTACAGACCCCTGGGTCCAAGGGTGCAGTTCATCGAC
+TAGATGGCAGTGGGTGGCAGCAATGCCGCTTAAGATATAGTCAGGCCCCCGGGAGACCGG
+GCGGCGGAACAAAGATCCTGGGGAGGCGTCCTCTGAGAGCCCCGGGATCCCGAGTCCGCC
+GGTGGTGCCGCAGCGTGCGGTGCCTGGAGTTAGTGCTAGTAGCTGGTTCCTGCCGAAGTT
+TCCCTCAGGATAGCAGTGTTGAATTCAGTTTTATGAGGTAAAGCGAATGATTAGAGGCCT
+TGGGGTTGCAACAACCTTAACCTATTCTCAAACTTTAAATATGTAAGAAGTCCTTGTTAC
+TTAATTGAACGTGGACATTCGAATGTACCAACACTAGTGGGCCATTTTTGGTAAGCAGAA
+CTGGCGATGCGGGATGAACCGAACGCGGAGTTAAGGTGCCGGAATGTACGCTCATCAGAC
+ACCACAAAAGGTGTTAGTTCATCTAGACAGCAGGACGGTGGCCATGGAAGTCGGAATCCG
+CTAAGGAGTGTGTAACAACTCACCTGCCGAATGAACTAGCCCTGAAAATGGATGGCGCTT
+AAGCGTACTACCCATACTCCGCCGCCAGGGTAGAAACGATGCCCT
+>NG_247124.1 Ciliochorella savannica IFRDCC 3201 28S rRNA gene, partial sequence; from TYPE material
+GGAGGTGGTCCGGCACAGGGGAGACAACAGGGATTGCCCTAGTAACGGCGAGTGAAGCGG
+CAACAGCTCAAATTTGAAATCTGGCCCTTGGGTCCGAATTGTAATTTGTAGAGGATGATT
+TTGGTGCGGTACCTTCCGAGTTCCTTGGAACAGGACGCCTTAGAGGGTGAGAGCCCCGTA
+CGGTTGGATGCCTAGCCTCTGTAAATCTCCTTCGACGAGTCGAGTAGTTTGGGAATGCTG
+CTCTAAATGGGAGGTAAATTTCTTCTAAAGCTAAATACTGGCCAGAGACCGATAGCGCAC
+AAGTAGAGTGATCGAAAGATGAAAAGCACTTTGAAAAGAGGGTTAAATAGCACGTGAAAT
+TGTTGAAAGGGAAGGATTTATGACCAGACTTTTTCTGGGCGGATCATCCGGTGTTCTCAC
+CGGTGCACTTTGCCCAGTTTAGGCCAGCATCGATTTTCGGAGGGGGGTAAAAGCTTTGGG
+AATGTGGCTCCTTCGGGAGTGTTATAGCCCATTGTATAATACCCTTCTGGGGATCGAGGT
+ACGCGCTTCTGCAAGGATGCTGGCATAATGGTTATCAATCACCCGTCTTGAAACACGGAC
+CAAGGAGTCGAACATTTGTGCGAGTGTTTGGGTGTTAAACCCTCACGCGTAATGAAAGTG
+AACGGAGGTGAGAGCCCGTACGGGTGCATCATCGACCGATCCTGAAGTTTTCGGATGGAT
+TTGAGTAAGAGCATAACTGTTCGGACCCGAAAGATGGTGAACTATGCGTGGATAGGGTGA
+AGCCAGAGGAAACTCTGGTGGAGGCTCGCAGCGGTTCTGACGTGCAAATCGATCGTCAAA
+TCTGCGCATGGGGGCGAAAGACTAATCGAACCATCTAGTAGCTGGTTACCGCCCGAAGTT
+TCCCTCAGGAT
+>NG_247110.1 Neohelicosporium fluviatile MFLUCC 15-0606 28S rRNA gene, partial sequence; from TYPE material
+GCCTCAGTAACGGCGAGTGAAGCGGCAACAGCTCAAATTTGAAATCTGGCTTCGGTCCGA
+GTTGTAATTTGTAGAGGATGCTTCGGCTTACGTACCGGTCTAAGTTCCTTGGAACAGGAC
+GTCACAGAGGGTGAGAATCCCGTTTGTGGCCGGCACTTCCGCCATGTGAAGCTCCTTCGA
+CGAGTCGAGTTGTTTGGGAATGCAGCTCTAAATGGGAGGTAAATTTCTTCTAAAGCTAAA
+TACCGGCCAGAGACCGATAGCGCACAAGTAGAGTGATCGAAAGATGAAAAGCACTTTGGA
+AAGAGAGTTAAAAAGTACGTGAAATTGTTGAAAGGGAAGCGCTTGCGACCAGACTTGCCC
+GCGGATGCTCAACCGGTCCTTCGGCCGGTGCACTCTTCCGCGGTCAGGCCAGCATCAGTT
+CGGGCGGTCGGATAAAGGCCTTGGGAATGTGGCTCTCTTCGGGGAGTGTTATAGCCCTTG
+GTGCAATACGGCCCGCCTGGACTGAGGCCCGCGCTTCGGCTAGGATGCTGGCGTAATGGT
+CGTAAGCGGCCCGTCTTGAAACACGGACCAAGGAGTCTAACATCTATGCGAGTGTTTGGG
+TGTCAAACCCGTGCGCGAAATGAAAGTGAACGGAGGTGGGAACCTTTGGGTGCACCATCG
+ACCGATCCTGATGTCTTCGGATGGATTTGAGTAAGAGCATAGCTGTTGGGACCCGAAAGA
+TGGTGAACTATGCCTGAATAGGGTGAAGCCAGAGGAAACTCTGGTGGAGGCTCGCAGCGG
+TTCTGACGTGCAAATCGATCGTCAAATTTGGGTATAGGGGCGAAAGACTAATCGAACCAT
+TACTGAATGTACCGGGCATGTGTAGATGTGCCTGCTACTAGGTGGTTAAGAGGCGGCTGA
+AAGTGACCGTCTAGTCCCTCCATTCGGGGCAACACCGTCAAATTGCGGGGACTTCCTTAG
+AGCCTGAACTACCGCGGCCGGTCGAAAGATACGGTGCAGCACCAGGGTAATGACCTCGGG
+TATGGTAATAACGTTCAGGATTGGATAATCCGCAGCCAAGTCCTAATGGCCGCCCTCTCC
+GGGTGGTACGGATGCAGTTCACAGACTAGATGTCGGTGGGTGTGGTCTCCAGAGGTCATG
+CTTAAGGTATAGTCGAACCCCCGCGGAAACGTGGGTGGAAGGCCAAAGTCTCCAGGCGAG
+TGGGCACCTTCTGAAGGTGC
+>NG_247104.1 Hongkongmyces aquisetosus GZCC 20-0357 28S rRNA gene, partial sequence; from TYPE material
+AGCATATCAATAAGCGGAGGAAAAGAAACCAACAGGGATTGCCCTAGTAACGGCGAGTGA
+AGCGGCAACAGCTCAAATTTGAAATCTGGCTCCTTCCGGGGTCCGAGTTGTAATTTGTAG
+AGGGTGCTTTGGCGTCGGCCATGGTCTAAGTTCCTTGGAACAGGACGTCACAGAGGGTGA
+GAATCCCGTACGTGGCCGCTGGCCTTCGCCATGTAAAGCCCCTTCGACGAGTCGAGTTGT
+TTGGGAATGCAGCTCTAAATGGGAGGTAAATTTCTTCTAAAGCTAAATATTGGCCAGAGA
+CCGATAGCGCACAAGTAGAGTGATCGAAAGATGAAAAGCACTTTGGAAAGAGAGTCAAAA
+AGCACGTGAAATTGTTGAAAGGGAAGCGCTTGCAGCCAGACTTGCCCGTAGTTGCTCATC
+CAGGCTTCGGCCTGGTGCACTCTTCTGCGGGCAGGCCAGCATCAGTCCAGGCGGTCGGAT
+AAAGGTCCCGGGAATGTGGCTCTCTTCGGGGAGTGTTATAGCCCGGGGCGCAATGCGGCC
+AGCTTGGACTGAGGTCCGCGCATCTGCTAGGATGCTGGCGTAATGGCTGTAAGCGGCCCG
+TCTTGAAACACGGACCAAGGAGTCTAACATCTATGCGAGTGTTTGGGTGTCAAGCCCGAG
+CGCGCAATGAAAGTGAACGGAGGTGGGAACCCGCAAGGGTGCACCATCGACCGATCCTGA
+TGTCTTCGGATGGATTTGAGTAAGAGCATAGCTGTTGGGACCCGAAAGATGGTGAACTAT
+GCCTGAATAGGGTGAAGCCAGAGGAAACTCTGGTGGAGGCTCGCAGCGGTTCTGACGTGC
+AAATCGATCGTCAAATTTGGGCATAGGGGCGAAAGACTAATCGAACTATCTAGTAGCTGG
+TTCCTGCG
+>NG_247097.1 Paraconiothyrium yunnanensis ZHKUCC 22-0197 28S rRNA gene, partial sequence; from TYPE material
+CTAAGCATATCAATAAGCGGAGGAAAAGAAACCAACAGGGATTGCCCTAGTAACGGCGAG
+TGAAGCGGCAACAGCTCAAATTTGAAATCTGGCTCTCTTTGGGGGTCCGAGTTGTAATTT
+GCAGAGGATGCTTTGGCATTGGCGGCGGTCTAAGTTCCTTGGAACAGGACATCGCAGAGG
+GTGAGAATCCCGTACGTGGGCGCCTGCCTTTGCCGTGTAAAGCTCCTTCGACGAGTCGAG
+TTGTTTGGGAATGCAGCTCTAAATGGGAGGTAAATTTCTTCTAAAGCTAAATACCGGCCA
+GAGACCGATAGCGCACAAGTAGAGTGATCGAAAGATGAAAAGTACTTTGGAAAGAGAGTC
+AAAAAGCACGTGAAATTGTTGAAAGGGAAGCGCTTGCAGCCAGACTTGCCCGCGGTTGCT
+CACCTAGGCTTTGGCCTGGGGCACTCTTCTGCGGGCAGGCCAGCATCAGTTTGGGCGGTC
+GGATAAAGGCCTCTGTCACGTATCTTCCTTCGGGATGACCTTATAGGGGAGGCGTAATGC
+GACCAGCCCGGACTGAGGTCCGCGCATCTGCTAGGATGCTGGCGTAATGGCTGTAAGCGG
+CCCGTCTTGAAACACGGACCAAGGAGTCTAACATCTATGCGAGTGTTTGGGTGTCAAGCC
+CGGGCGCGTAATGAAAGTGAACGGAGGTGGGAACCCTTTGGGTGCACCATCGACCGATCC
+TGATGTCTTCGGATGGATTTGAGTAAGAGCATAGCTGTTGGGACCCGAAAGATGGTGAAC
+TATGCTTGAATAGGGTGAAGCCAGAGGAAACTCTGGTGGAGGCTCGCAGCGGTTCTGACG
+TGCAAATCGATCGTCAAATTTGGGCATAGGGGCGAAAGACTAATCGAACCATCTAGTAGC
+TGGTTCCTGCGAGCTC
+>NG_247089.1 Seimatosporium cyprium CBS 149019 28S rRNA gene, partial sequence; from TYPE material
+AAAGAAACCAACCGGGATTGCCCTAGTAACGGCGAGTGAAGCGGCAACAGCTCAAATTTG
+AAATCTGGCCCTTGGGTCCGAATTGTAATTTGTAGAGGATGTTTTTGGTGCGGTATCTTC
+CGAGTTCCTTGGAACAGGACGCCTTAGAGGGTGAGAGCCCCGTACGGTTGAATGCCTAGC
+CTTTGTAAAACTCCTTCGACGAGTCGAGTAGTTTGGGAATGCTGCTCTAAATGGGAGGTA
+AATTTCTTCTAAAGCTAAATACCGGCCAGAGACCGATAGCGCACAAGTAGAGTGATCGAA
+AGATGAAAAGCACTTTGAAAAGAGGGTTAAATAGCACGTGAAATTGTTGAAAGGGAAGGA
+TTTATGACCAGACTTTTTCTAGGCGAATCATCCGGTGTTCTCACCGGTGCACTTCGTTTA
+GTTTAGGCCAGCATCGATTTTCGGGGCGGGATAAAAGCTTCAGGAATGTGGCTCCCTCGG
+GAGTGTTATAGCCTGTTGTATAATACCGCCCTGGGGATCGAGGTACGCGCTTCTGCAAGG
+ATGCTGGCGTAATGGTTATCAATCACCCGTCTTGAAACACGGACCAAGGAGTCGAACATT
+TGTGCGAGTGTTTGGGTGTTAAACCCTCACGCGTAATGAAAGTGAACGGAGGTGAGAGCC
+CTTTACGGGGTGCATCATCGACCGATCCTGATGTCTTCGGATGGATTTGAGTAAGAGCAT
+AAATGTTCGGACCCGAAAGATGGTGAACTATGCGTGGATAGGGTGAAGCCAGAGGAAACT
+CTGGTGGAGGCTCGCAGCGGTTCTGACGTGCAAATCGATCGTCAAATCTGCGCATGGGGG
+CGAAAGACTAATCGAACCATCTAGTAGCTGGTTACCGCCGAAGTTTCCCTCAGGATAGCA
+GTGTTGTCTTCAGTTTTATGAGGTAAAGCGAATGATTAGGGACTCGGGGGCGCTTTTTAG
+CCTTCATCCATTCTCAAACTTTAAATATGTAAGAAGCTCTTGTTACTTAATTGAACGTGA
+GCATTCGAATGTACCAACCCTAGTGGGCCATTTTTGGTAAGCAGAACTGGCGATGCGGGA
+TGAACCGAACGCGGGGTTAAGG
+>NG_247065.1 <em>Mucor</em> aseptatophorus MFLUCC 21-0040 28S rRNA gene, partial sequence; from TYPE material
+CCTAGTAACGGCGAGTGAAGAGGAAAGAGCTCAAAGTTGGAACCTGTTTGGCTTAGCTAA
+ACCGGATTGTAAACTGTAGAAGTGTTTTCCAGACACGCCTGGTAAAAAAGTCCTTTGGAA
+CAGGGCATCATAGAGGGTGAGAATCCCGTCATTGGCCAGAGCTGTTGTCTTTTGTGATAC
+ATTTTCAAAGAGTCAGGTTGTTTGGGAATGCAGCCTAAATTGGGTGGTAAATCTCACCTA
+AAGCTAAATATTTGCGAGAGACCGATAGCGAACAAGTACCGTGAGGGAAAGATGAAAAGA
+ACTTTGAAAAGAGAGTTAAACAGTATGTGAAATTGTTAAAAGGGAACCGTTTGGAGCCAG
+ACTGGCTTAATCGTAATCACTCTAGGCTTTGGCCTGGATGCACTTGCGGTTTATGCCGGC
+CAACGACAGTTTTGTTTGAGGGAAAAAATTACATTGAATGTGGCCCCTCGGGGTGTTATA
+GCTTTGTAAAAAATACCTTGGACGGGACTGAGGAACGCAGCGAATGCCTTTAGGCGAGAT
+TGCTGGGTGCTTGCGCTGATATATGCTAGAATTTCTGCTTCGGGTGGTGCTAGTGTGTAA
+AGGAGTAACCCGCCTAGTATATTTTTTATTCGCTTAGGTTGTTGGCTTAATGACTCTAAA
+TGACCCGTCTTGAAACACGGACCAAGGAGTCCACCATTAGTGCGAGTATTTGGGTGACAA
+ACCCATATGCGCAAGGAAACTGATTGATACGAAGGCGCAAGCTGGCAGTATCACCCGGCG
+TTGACGTTTTATACTGAACTGACCGAGGTAAAGCACTAATGATGGGACCCGAAAGATGGT
+GAACTATGCCTGAATAGGGTGAAGCCGGAGGAAACTCCGGTGGAGGCTCGTAGCGATTCT
+GACGTGCAAATCGATCGTCAAATTTGGGTATAGGGGCGAAAGACTAATCGAACCATCTAG
+TAGCTGGTTCCTGCCGAAGTTTCCCTCAGGATAGCAGAAACTTATACGCAGTTTTATGAG
+GTAAAGCGAATGATTAGAGGCCTTGGGGACGAAATGTCCTTAACCTATTCTCAAACTTTA
+AATATGTAAGACGACCTGTTTGCTTAATTGAAGCAGGTCATTGAATGCAGAGTTTCTAGT
+GGGCCATTTTTGGTAAGCAGAACTGGCGATGCGGGATGAACCGAACGGAAAGTTAAGGTG
+CCGGAATACACGCTCATCAGACACCACAAAAGGTGTTAGTTCATCTAGACAGCAGGACGG
+TGGCCATGGAAGTCGGAATCCGCTAAGGAGTGTGTAACAACTCACCTGCCGAATGAACTA
+GCCCTGAAAATGGATGGCGCTTAAGCGTGTTACCCATACTTTCCCGTTATTGTAAAAGCG
+AAGCAATAACGAGTAGGCAGGCGTGGAGGTTTTTATAAACTGTTAAG
+>NG_247064.1 <em>Mucor</em> phayaoensis MFLUCC 21-0044 28S rRNA gene, partial sequence; from TYPE material
+CCTAGTAACGGCGAGTGAAGAGGAAAGAGCTCAAAGTTGGAAACTGTTTGGCTTAGCTAA
+ACCGTATTGTAAACTGTAGAAACATTTTCCTGGCACACCAGATTAATAAGTCCTTTGGAA
+CAAGGCATCATGGAGGGTGAGAATCCCGTCTTTGATCTGAGTAGTTGTCTTTTGTGATAT
+GTTTTCAAAGAGTCAGGTTGTTTGGGAATGCAGCCTAAATTGGGTGGTAAATCTCACCTA
+AAGCTAAATATTTGCGAGAGACCGATAGCGAACAAGTACCGTGAGGGAAAGATGAAAAGA
+ACTTTGAAAAGAGAGTTAAACAGTATGTGAAATTGTTAAAAGGGAACCGTTTGGAGCCAG
+ACTGGTTTGCTTGTAATCAACCTAGAATTCGTTTTGGGTGCACTTGCAGGCTATACCTGC
+CAACAACAGTTTGATTTGGAGGAAAAAATTAGTAGGAATGTAGCCTCTCGAGGTGTTATA
+GCCTACTATCATACTCTGGATTGGACTGAGGAACGCAGCGAATGCCTTTAGGCAAGATTG
+CTGGGTGCTTTCGCTAATAAATGTTAGAATTTCTGCTTCGGGTGGTGCTAATGTTTAAAG
+GAGGAACACATCTAGTATATTTTTTATTCGCTTAGGTTGTTGGCTTAATGACTCTAAATG
+ACCCGTCTTGAAACACGGACCAAGGAGTCCACCATAAGTGCAAGTATTTGAGTGACAAAC
+TCATATGCGTAAGGAAACTGATTGATACGAAGTCTTTTGATGGCAGTATCACCCGGCGTC
+GACGTTTTAACTGAAATGACCGAGGTAAAGCACTTATGATGGGACCCGAAAGATGGTGAA
+CTATGCCTGAATAGGGTGAAGCCAGAGGAAACTCTGGTGGAGGCTCGTAGCGATTCTGAC
+GTGCAAATCGATCGTCAAATTTGGGTATAGGGGCGAAAGACTAATCGAACCATCTAGTAG
+CTGGTTCCTGCCGAAGTTTCCCTCAGGATAGCAAAAACTTAAACGCAGTTTTATGAGGTA
+AAGCGAATGATTAGAGGCCTTGGGGACGAAATGTCCTTAACCTATTCTCAAACTTTAAAT
+ATGTAAGACGACCTGTTTGCTTAATTGAAGCAGGTCATTGAATGTGAGTTTTTAGTGGGC
+CATTTTTGGTAAGCAGAACGGCGATGCGGGATGAACCGAACGAGAAGTTAAGGTGCCGGA
+ATACACGCTCATCAGACACCACAAAAGGTGTTAGTTCATCTAGACAGCAGGACGGTGGCC
+ATGGAAGTCGGAATCCGCTAAGGAGTGTGTAACAACTCACCTGCCGAATGAACTAGCCCT
+GAAAATGGATGGCGCTTAAGCGTGTTACCCATACTTCTCCGTTATTGTAAAAGCGAAGCA
+AATAACGAGTAGGCAGGCGTGGAGGTTTTTATAAACTGTTAAG
+>NG_247063.1 <em>Mucor</em> takensis MFLUCC 21-0041 28S rRNA gene, partial sequence; from TYPE material
+GTAACGGCGAGTGAAGAGGAAAGAGCTCAAAGTTGGAACCTGTTTGGCTTAGCTAAACCG
+GATTGTAAACTGTAGAAGTGTTTTCCAGACACGCCTGGTAAAAAAGTCCTTTGGAACAGG
+GCATCATAGAGGGTGAGAATCCCGTCATTGGCCAGAGCTGTTGTCTTTTGTGATACATTT
+TCAAAGAGTCAGGTTGTTTGGGAATGCAGCCTAAATTGGGTGGTAAATCTCACCTAAAGC
+TAAATATTTGCGAGAGACCGATAGCGAACAAGTACCGTGAGGGAAAGATGAAAAGAACTT
+TGAAAAGAGAGTTAAACAGTATGTGAAATTGTTAAAAGGGAACCGTTTGGAGCCAGACTG
+GCTTAATCGTAATCACTCTAGGCTTTGGCCTGGATGCACTTGCGGTTTATGCCGGCCAAC
+GACAGTTTTGTTTGAGGGAAAAAATTACATTGAATGTGGCCCCTCGGGGTGTTATAGCTT
+TGTAAAAAATACCTTGGACGGGACTGAGGAACGCAGCGAATGCCTTTAGGCGAGATTGCT
+GGGTGCTTGCGCTGATATATGCTAGAATTTCTGCTTCGGGTGGTGCTAGTGTGTAAAGGA
+GTAACCCGCCTAGTATATTTTTTATTCGCTTAGGTTGTTGGCTTAATGACTCTAAATGAC
+CCGTCTTGAAACACGGACCAAGGAGTCCACCATTAGTGCGAGTATTTGGGTGACAAACCC
+ATATGCGCAAGGAAACTGATTGATACGAAGGCGCAAGCTGGCAGTATCACCCGGCGTTGA
+CGTTTTATACTGAACTGACCGAGGTAAAGCACTAATGATGGGACCCGAAAGATGGTGAAC
+TATGCCTGAATAGGGTGAAGCCGGAGGAAACTCCGGTGGAGGCTCGTAGCGATTCTGACG
+TGCAAATCGATCGTCAAATTTGGGTATAGGGGCGAAAGACTAATCGAACCATCTAGTAGC
+TGGTTCCTGCCGAAGTTTCCCTCAGGATAGCAGAAACTTATACGCAGTTTTATGAGGTAA
+AGCGAATGATTAGAGGCCTTGGGGACGAAATGTCCTTAACCTATTCTCAAACTTTAAATA
+TGTAAGACGACCTGTTTGCTTAATTGAAGCAGGTCATTGAATGCAGAGTTTCTAGTGGGC
+CATTTTTGGTAAGCAGAACTGGCGATGCGGGATGAACCGAACGGAAAGTTAAGGTGCCGG
+AATACACGCTCATCAGACACCACAAAAGGTGTTAGTTCATCTAGACAGCAGGACGGTGGC
+CATGGAAGTCGGAATCCGCTAAGGAGTGTGTAACAACTCACCTGCCGAATGAACTAGCCC
+TGAAAATGGATGGCGCTTAAGCGTGTTACCCATACTTTCCCGTTATTGTAAAAGCGAAGC
+AATAACGAGTAGGCAGGCGTGGAGGTTTTTATAAACTGT
+>NG_247062.1 Paralulworthia candida MUT 5430 28S rRNA gene, partial sequence; from TYPE material
+CCTCAGTAACGGCGAGTGAAGCGGCAACAGCTCAAATTTGAAATCTGGCCTCGGCCCGAG
+TTGTAATTTGCAGAGGATGCTTCCGGCGACGTGCCTTCCGAGTCCCCTGGAACGGGGCGC
+CTGAGAGGGTGAGAGCCCCGTACGGCTGGACGCCGAGCCTGTGTGAAGCTCCTTCGACGA
+GTCGAGTAGTTTGGGAATGCTGCTCTAAATGGGAGGTAAATTCCTTCTAAAGCTAAATAC
+CGGCCAGAGACCGATAGCGCACAAGTAGAGTGATCGAAAGATGAAAAGCACTTTGGAAAG
+AGGGTTAAACAGTACGTGAAATTGCTGAAAGGGAAGCGCTCGCGACCAGACTCGCGCCGG
+GCGGATCATCCAGCGTTCTCGCTGGTGCACTTCGCCCGGCCCGGGCCAGCATCGGTTCTA
+GCGGGGGGACAAAAGCCCGGGAAACGTAGCTCCCTCCGGGGAGTGTTATAGTCCCTCGCC
+TAATATCCCCGCCGGGACCGAGGACCGCGCCTCGTGCAAGGATGCTGGCGTAATGGTCGC
+CAGCGACCCGTCTTGAAACACGGACCAAGGAGTCGAACATTCGTGCGAGTGTTTGGGTGG
+AAACCCCTCACGCGTAATGAAAGTGAACGGAGGTGGGAGCTTCGGCGCACCATCGACCGA
+TCCTGAAGCTTGTCGGATGGATTTGAGTGGGAGCATGACTGTTCGGACCCGAAAGATGGT
+GAACTATGCCTGCGTAGGGTGAAGCCAGAGGAAACTCTGGTGGAGGCTCGCAGCGGTTCT
+GACGTGCAAATCGATCGTCAAACGTGGGCATGGGGGCGAAAGACTAATCGAACCATCTAG
+TAGCTGGTTTCCGCCGAAGTTTCCCTCAGGATAGCAGTGCTGATCTCAGTTTTATGAGGT
+AAAGCGAATGATTAGGGACTCGGGGGCGCCATTTAGCCTCCATCCATTCTCAAACTTTAA
+ATATGTAAGAAGCCACTGTCGCTTAATTGGACGTCGGCATTCGAATGCAGCAGCACTAGT
+GGGCCATTTTTGGTAAGCAGAACGGGCGATGCGGGATGAACCGAACGCGGGGTTAAGGTG
+CCAGAGTGGACGCTCATCAGACACCACAAAAGGTGTTAGTACATCTTGACAGCAGGACGG
+TGGCCATGGAAGTCGGAATCCGCTAAGGACTGTGTAACAACTCACCTGCCGAATGTACTA
+GCCCTGAAAATGGATGGCGCTCAAGCGTCCCACCCATACCCCGCCCCCTGGGTAGAAACG
+AAGCCCAGGGGAGTAGGCGGAC
+>NG_247060.1 <em>Absidia</em> biappendiculata CBS 187.64 28S rRNA gene, partial sequence; from TYPE material
+GCATATCAATAAGCAGAGGAAAAGAATATAACAATGATTCCCCCAGTAACGGCGAGTGAA
+CAGGGAAAAGCTCAGAGTTGGAATCTCCCAGTTTTAAATTGGGCGACTTGTAAACTAAAG
+CTCTCGAGTAGTTCGGCTAGCCTGGTAAACAAGTTCTCTGGAAAGGGACGACAAAGAGGG
+TGAAATCCCCGTTTTTGGCCGGAGCATAGTCTTGCGTTTGCTTGGAAGCGAAGAGTCAGG
+TTGTTTGGTATTGCAGCCTAAAGTTGGAGGTAAATCTCTCCTAAAGCTAAATATTGACGA
+AAGACCGATAGCGAACAAGTACCGTGAGGGAAAGATGAAAAGCACCTTGAAAAGGGGGTC
+AAAAAGTACGTGAAATTGCTGAAAGGGAACCGTATGAAATCAGCCTGTATCTTTAGTAAT
+CAGTCTGGGCTTTGGCCTGGATGCACTTGCTAGTGATTCAGCTTGCGACAGTTTGATTTG
+GGGGAAAAAATCAAGGAGAATGTGGCTTTGATTTCGGTGAAAGTGTTATAGCTCTTTGAA
+AAATACTCTGGATTGGACTGAGGACTGCAGCGAGCCTTTGGGATGGACTGTGGGAGCTTA
+TTTTATAGTGAGGGAGAATCTCTGCTTCGGGTGGTGCCTTCCCACCAAGGAATAACCCCC
+CCACTTTTCCTTTTTCTCGCTTAGGTCGCAAGCATAATGATTTTATATGACCCGTCTTGA
+AACACGGACCAAGGAGTCCACCATAATTGCAAGTCTTTGGGTGTAGAAACCCATAGGCGT
+AAGGAAACTGACCAAGATATGAAGGCTTTCACAGGCTGGCAATATCCTCCAGCGAGGACG
+TTTTTTATACTGAATTGACTGAGAGAAAGCAATTATGATGGGACCCGAAAGATGGTGAAC
+TATACTTGAATAGGGTGAAGCCAGAGGAAACTCTGGTGGAAGCTCGTAGCGATTCTGACGT
+GCAAATCGATCGTCAAATTTGAGTATAGGGGCGAAAGACTAATCGAACCAT
+>NG_247052.1 Seiridium syzygii CBS 147078 28S rRNA gene, partial sequence; from TYPE material
+TTAAGCATATCAATAAGCGGAGGAAAAGAAACCAACAGGGATTGCCCTAGTAACGGCGAG
+TGAAGCGGCAACAGCTCAAATTTGAAATCTGGCCCTTGGGTCCGAATTGTAATTTGTAGA
+GGATGATTTTGGTGCGGTATCTTCCGAGTTCCTTGGAACAGGACGCCTTAGAGGGTGAGA
+GCCCCGTACGGTTGAATGCCTAGCCTCTGTAAATCTCCTTCGACGAGTCGAGTAGTTTGG
+GAATGCTGCTCTAAATGGGAGGTAAATTTCTTCTAAAGCTAAATACTGGCCAGAGACCGA
+TAGCGCACAAGTAGAGTGATCGAAAGATGAAAAGCACTTTGAAAAGAGGGTTAAATAGCA
+CGTGAAATTGTTGAAAGGGAAGGATTTATGACCAGACTTTTTCTGGGCGGATCATCCGGT
+GTTCTCACCGGTGCACTTTGCCCAGTTTAGGCCAGCATCGATTTTCGGAGAGGGATAAAA
+GCTTTGGGAATGTGGCTCCTCCGGGAGTGTTATAGCCCATTGTATAATACCTCTCTGGGG
+ATCGAGGTACGCGCTTCTGCAAGGATGCTGGCGTAATGGTTATCAATCACCCGTCTTGAA
+ACACGGACCAAGGAGTCGAACATTTGTGCAAGTGTTTGGGTGTTAAACCCTCACGCGTAA
+TGAAAGTGAACGGAGGTGAGAGCCCTTACGGGTGCATCATCGACCGATCCTGAAGTTTTC
+GGATGGATTTGAGTAAGAGCATAACTGTTCGGACCCGAAAGATGGTGAACTATGCGTGGA
+TAGGGTGAAGCCAGAGGAAACTCTGGTGGAGGCTCGCAGCGGTTCTGACGTGCAAATCGA
+TCGTCAAATCTGCGCATGGGGGCGAAAGACTAATCGAACCATCTAGTAGCTGGTTACCGC
+>NG_247033.1 Apiospora stipae CBS 146804 28S rRNA gene, partial sequence; from TYPE material
+AAGCATATCAATAAGCGGAGGAAAAGAAACCAACAGGGATTCCCCTAGTAACGGCGAGTG
+AAGCGGGAACAGCTCAAATTTGAAATCTGGCCCTTGGGTCCGAGTTGTAATTTGCAGAGG
+ATGCTTTTGGTGCGGTGCCTTCCGAGTTCCCTGGAACGGGACGCCTTAGAGGGTGAGAGC
+CCCGTACGGTTGGCCACCAAGCCTGTGTAAAGCTCCTTCGACGAGTCGAGTAGTTTGGGA
+ATGCTGCTCAAAATGGGAGGTATATTTCTTCTAAAGCTAAATACTGGCCAGAGACCGATA
+GCGCACAAGTAGAGTGATCGAAAGATGAAAAGCACTTTGAAAAGAGGGTTAAATAGCACG
+TGAAATTGTTGAAAGGGAAGGATTTATGACCAGACTTTTTCTGGGGGGATCATCCGGTGT
+TCTCACCGGTGCACTTCCCCCAGTTGAGGCCAGCATCGGTTTCTGTCGGGGGATAAAAGC
+TTCAGGAATGTGGCTCCTTCGGGAGTGTTATAGCCTGTTGCATAATACCCTGACGGGGAC
+CGAGGTTCGCGCATTGCAAGGATGCTGGCGTAATGGTTATTAATCACCCGTCTTGAAACA
+CGGACCAAGGAGTCGAACATTTGTGCGAGTGTTTGGGTGTTAAACCCTCACGCGTAATGA
+AAGTGAACGGAGGTGAGAGCCTTTAGGGGTGCATCATCGACCGATCCTGATGTCTTCGGA
+TGGATTTGAGTAAGAGCATAACTGTTCGGACCCGAAAGATGGTGAACTATGCGTGGATAG
+GGTGAAGCCAGAGGAAACTCTGGTGGAGGCTCGCAGCGGTTCTGACGTGCAAATCGATCG
+TCAAATCTGCGCATGGGGGCGAAAGACTAATCGAACCATCTAGTAGCTGGTTACCGCCGA
+>NG_247031.1 <em>Neosetophoma</em> buxi CBS 146845 28S rRNA gene, partial sequence; from TYPE material
+GCCCTAGTAACGGCGAGTGAAGCGGCAACAGCTCAAATTTGAAATCTGGCTCTTTCAGGG
+TCCGAGTTGTAATTTGCAGAGGGCGCTTTGGCGTTGGCAGCGGTCCAAGTTCTTTGGAAC
+AGGACGTCACAGAGGGTGAGAATCCCGTACGTGGTCGCTAGCCTTCGCCGTGTAAAGCCC
+CTTCGACGAGTCGAGTTGTTTGGGAATGCAGCTCTAAATGGGAGGTAAATTTCTTCTAAA
+GCTAAATACTGGCCAGAGACCGATAGCGCACAAGTAGAGTGATCGAAAGATGAAAAGCAC
+TTTGGAAAGAGAGTCAAATAGCACGTGAAATTGTTGAAAGGGAAGCGCTTGCAGCCAGAC
+TTGCCTGTAGTTGCTTATCCGGACTTTTGTCCGGTGCACTCTTCTGCGGGCAGGCCAGCA
+TCAGTCTAGGCGGTTGGATAAAGGTCTCTGTCATGTACCTCTCTTCGGGGAGGCCTTATA
+GGGGAGACGACATGCAACCAGCCTGGACTGAGGTCCGCGCATCTGCTAGGATGCTGGCGT
+AATGGCTGTAAGCGGCCCGTCTTGAAACACGGACCAAGGAGTCTAACATCTATGCGAGTG
+TTTGGGTGTCAAGCCCAGACGCGTAATGAAAGTGAACGGAGGTGGGAACCCTTACGGGTG
+CACCATCGACCGATCCTGATGTCTTCGGATGGATTTGAGTAAGAGCATGGCTGTTGGGAC
+CCGAAAGATGGTGAACTATGCTTGAATAGGGTGAAGCCAGAGGAAACTCTGGTGGAGGCT
+CGCAGCGGTTCTGACGTGCAAATCGATCGTCAAATTTGGGCATAGGGGCGAAAGACTAAT
+CGAACTATCTAGTAGCTGGTTCCTGCCGAAGTTTCCCTCAGGATAGCAGTAACGTATTCA
+GTTTTATGAGGTAAAGCGAATGATTAGAGGCCTGGGGGTTGAAACAACCTTCACCTATTC
+TCAAACTTTAAATATGTAAGAAGTCCTTGTTACTTGATTGAACG
+>NG_247030.1 <em>Hypoxylon</em> pseudofuscum DSM 112038 28S rRNA gene, partial sequence; from TYPE material
+ATTGCCCTAGTAACGGCGAGTGAAGCGGCAACAGCTCAAATTTGAAATCTGGCCCTCGTG
+GTCCGAGTTGTAATTTGTAGAGGATGCTTTTGGTGCGGTGCCTTCCGAGTTCCCTGGAAC
+GGGACGCCAGAGAGGGTGAGAGCCCCGTACGGTTGGACACCTACCCTATATATAGCTCCT
+TCGACGAGTCGAGTAGTTTGGGAATGCTGCTCTAAATGGGAGGTAAATTTCTTCTAAAGC
+TAAATACCGGCCAGAGACCGATAGCGCACAAGTAGAGTGATCGAAAGATGAAAAGCACTT
+TGAAAAGAGGGTTAAATAGCACGTGAAATTGTTGAAAGGGAAGCGTTTGCGACCAGACCT
+TTTCCCGGCGGATCATCTGGTGTTCTCACCGGTGCACTTCGCTTGGTTTAGGCCAGCATC
+GGTTTCTTTAGGGGGATAAAGGTGTTGGGAACGTAGCTCTTTCGGGAGTGTTATAGCCCT
+TCACGTAATACCCTTCGAGGGACCGAGGACCGCGCATTGCAAGGATGCTGGCGTAATGGT
+CGTCAACGACCCGTCTTGAAACACGGACCAAGGAGTCGAACATTTGTGCGAGTGTTTGGG
+TGTTAAACCCTCACGCGTAATGAAAGTGAACGGAGGTGAGAGCCCTTACGGGTGCATCAT
+CGACCGATCCTGATGTCTTCGGATGGATTTGAGTAAGAGCATAACTGTTCGGACCCGAAA
+GATGGTGAACTATGCGTGGATAGGGTGAAGCCAGAGGAAACTCTGGTGGAGGCTCGCAGC
+GGTTCTGACGTGCAAATCGATCGTCAAATCTGCGCATGGGGGCGAAAGACTTATCGAACC
+ATCTAGTAGCTGGTTACCGCCGAAGTTTCCCTCAGGATAGCAGTGTTGTATTCAGTTTTA
+TGAGGTAAAGCGAATGATTAGGGACTCGGGGGCGCTTTATTGCCTTCATCCATTCTCAAA
+CTTTAAATATGTAAGAAGCCCTTGTTGCTTAATTGAACGTGGGCATTCGAATGTATCAAC
+ACTAGTGGGCCATTTTTGGTAAGCAGAACTGGCGATGCGGGATGAACCGAACGCGGGGTT
+AAGGTGCCAGAGTGGACGCTCATCAGACACCACAAAAGGTGTTAGTACATCTTGACAGCA
+GGTATGTCTAACTACCCTATACCCCCTACCCTGTACCTACCCGGTACGGGCTACCCTGTA
+ACAATCATACTAACTCGCTTTCTAGGACGGTGGCCATGGAAGTCGGAATCCGCTAAGGAC
+TGTGTAACAACTCACCTGCCGAATGTACTAGCCCTGAAAATGGATGGCGCTCAAGCGTCT
+CACCCATACCTCGCCCTTAGGGTAGAAACGATGCCCTAAGGAGTAGGCGGCCGTGGAGG
+>NG_247014.1 Hongkongmyces brunneosporus MFLUCC 18-1509 28S rRNA gene, partial sequence; from TYPE material
+CGGCGAGTGAAGCGGCAACAGCTCAAATTTGAAATCTGGCTCCTTCGGGGTCCGAGTTGT
+AATTTGTAGAGGGTGCTTTGGCGTCGGCCATGGTCTAAGTTCCTTGGAACAGGACGTCAC
+AGAGGGTGAGAATCCCGTACGTGGCCGCTGGCCTTCGCCATGTAAAGCCCCTTCGACGAG
+TCGAGTTGTTTGGGAATGCAGCTCTAAATGGGAGGTAAATTTCTTCTAAAGCTAAATATT
+GGCCAGAGACCGATAGCGCACAAGTAGAGTGATCGAAAGATGAAAAGCACTTTGGAAAGA
+GAGTCAAAAAGCACGTGAAATTGTTGAAAGGGAAGCGCTTGCAGCCAGACTTGCCCGTAG
+TTGCTCATCCAGGTTTCGGCCTGGTGCACTCTTCTGCGGGCAGGCCAGCATCAGTCCAGG
+CGGTCGGATAAAGGTCCCGGGAATGTGGCTCTCTTCGGGGAGTGTTATAGCCCGGGGCGC
+AATGCGGCCAGCTTGGACTGAGGTCCGCGCATCTGCTAGGATGCTGGCGTAATGGCTGTA
+AGCGGCCCGTCTTGAAACACGGACCAAGGAGTCTAACATCTATGCGAGTGTTTGGGTGTC
+AAGCCCGAGCGCGCAATGAAAGTGAACGGAGGTGGGAACCCGCAAGGGCGCACCATCGAC
+CGATCCTGATGTCTTCGGATGGATTTGAGTAAGAGCATAGCTGTTGGGACCCGAAAGATG
+GTGAACTATGCCTGAATAGGGTGAAGCCAGAGGAAACTCTGGTGGAGGCTCGCAGCGGTT
+CTGACGTGCAAATCGATCGTCAAATTTGGGCATAGGGGCGAAAGACTAATCGAACTATCT
+AGTAGCTGGTTCCTGCCGAAGTTTCCCTCAGGATAGCAGTAACGTTTTCAGTTTTATGAG
+GTAAAGCGAATGATTAGAGGCCTGGGGGTTGAAACAACCTTCACCTATTCTCAAACTTTA
+AATATGTAAGAAGTCCTTGTTACTTAATTGAACGTGGACATTTGAATGTACCGTTACTAG
+TGGGCCATTTTTGGTAAGCAGAACTGGCGATGCGGGATGAACCGAACGCGGGGTTAAGGT
+GCCAGAATGCACGCTCATCAGACACCACAAAAGGTGTTAGTTCATCTAGACAGCAGGACG
+GTGGCCATGGAAGTCGGAATCCGCTAAGGAGTGTGTAACAACTCACCTGCCGAATGAACT
+AGCCCTGAAAATGGATGGCGCTCAAGCGTGCTACCCATACCCCGCCGCCAGGGCACATAT
+TATGCCCTGGCGAGTAGGCAGGCGTGGAGGCTTGTGACGA
+>NG_247013.1 Austropleospora ochracea KUMCC 20-002 28S rRNA gene, partial sequence; from TYPE material
+GTTTACACCGGGGTGGGACTAAGCAGATCTATAAGCGGAGGAAAAGAAACCAACAGGGAT
+TGCCCTAGTAACGGCGAGTGAAGCGGCAACAGCTCAAATTTGAAATCTGGCTCTCTTTGA
+GGGTCCGAGTTGTAATTTGCAGAGGATGCTTTGGCATTGGCGGCGGTCTAAGTTCCTTGG
+AACAGGACATCGCAGAGGGTGAGAATCCCGTACGTGGGCGCCTGCCTTTGCCGTGTAAAG
+CTCCTTCGACGAGTCGAGTTGTTTGGGAATGCAGCTCTAAATGGGAGGTAAATTTCTTCT
+AAAGCTAAATACCGGCCAGAGACCGATAGCGCACAAGTAGAGTGATCGAAAGATGAAAAG
+TACTTTGGAAAGAGAGTCAAAAAGCACGTGAAATTGTTGAAAGGGAAGCGCTTGCAGCCA
+GACTTGCCCGCAGTTGCTCACCTAGGCTTTGGCCTGGGGCACTCTTCTGCGGGCAGGCCA
+GCATCAGTTTGGGCGGTTGGATAAAGGCCTCTGTCACGTATCTCCCTTCGGGGTGACCTT
+ATAGGGGAGGCGCAATGCAACCAGCCCGGACTGAGGTCCGCGCATCTGCTAGGATGCTGG
+CGTAATGGCTGTAAGCGGCCCGTCTTGAAACACGGACCAAGGAGTCTAACATCTATGCGA
+GTGTTTGGGTGTCAAGCCCGGGCGCGCAATGAAAGTGAACGGAGGTGGGAACCCTTTGGG
+TGCACCATCGACCGATCCTGATGTCTTCGGATGGATTTGAGTAAGAGCATAGCTGTTGGG
+ACCCGAAAGATGGTGAACTATGCTTGAATAGGGTGAAGCCAGAGGAAACTCTGGTGGAGG
+CTCGCAGCGGTTCTGACGTGCAAATCGATCGTCAAATTTGGGCATAGGGGCGAAAGACTA
+ATCGAACCATCTAGTAGCTGGTTCCTGCCGAAGTTTCCCCCTCAAGGAGGGGTAA
+>NG_247007.1 Triangularia bambusae CBS 352.33 28S rRNA gene, partial sequence; from TYPE material
+CAACAGGGATTGCCTCAGTAACGGCGAGTGAAGCGGCAACAGCTCAAATTTGAAATCTGG
+CCTCGGCCCGAGTTGTAATTTGTAGAGGAAGCTTTTGGTGCGGCACCGACCGAGTCCCCT
+GGAACGGGGCGCCATAGAGGGTGAGAGCCCCGTATGGTTGGACGCCTATCCTCTGTAAAG
+CTCCTTCGACGAGTCGAGTAGTTTGGGAATGCTGCTCAAAATGGGAGGTAAATTTCTTCT
+AAAGCTAAATATTGGCCAGAGACCGATAGCGCACAAGTAGAGTGATCGAAAGATGAAAAG
+CACTTTGAAAAGAGGGTTAAATAGCACGTGAAATTGTTGAAAGGGAAGCGCTTGTGACCA
+GACTTGCGCCTCGTCGATCATCCGGGGTTCTCCCCGGTGCGCTCGGCGGGGCTCAGGCCA
+GCATCGGTTCTCGCGGGGGGACAAAGGCTCCGGGAACGTAGCTCCTCCGGGAGTGTTATA
+GCCCGGGGCGTAATGCCCTCGCGGGGACCGAGGACCGCGCTTCGGCAAGGATGCTGGCGT
+AATGGTCATCAGCGACCCGTCTTGAAACACGGACCAAGGAGTCAAGGTTTTGCGCGAGTG
+TTTGGGTGTAAAACCCGCACGCGTAATGAAAGTGAACGTAGGTGAGAGCTTCGGCGCATC
+ATCGACCGATCCTGATGTATTCGGATGGATTTGAGTAGGAGCGTTAAGCCTTGGACCCGA
+AAGATGGTGAACTATGCTTGGATAGGGTGAAGCCAGAGGAAACTCTGGTGGAGGCTCGCA
+GCGGTTCTGACGTGCAAATCGATCGTCAAATCTGAGCATGGGGGCGAAAGACTAATCGAA
+CCATCTAGTAGCTGGTTACCGCCGAAGTTTCCCTCAGGATAGCAGTGTTGTTCTTCAGTT
+TTATGAGGTAAAGCGAATGATTAGGGACTCGGGGGCGCTTTTTAGCCTTCATCCATTCTC
+AAACTTTAAATATGTAAGAAGCCCTTGTTACTTAATTGAACGTGGGCATTCGAATGTACC
+AACACTAGTGGGCCATTTTTGGTAAGCAGAACTGGCGATGCGGGATGAACCGAACGCGGG
+GTTAAGGTGCCGGAGTGGACGCTCATCAGACACCACAAAAGGCGTTAGTACATCTTGACA
+GCAGGACGGTGGCCATGGAAGTCGGAATCCGCTAAGGACTGTGTAACAACTCACCTGCCG
+AATGTACTAGCCCTGAAAATGGATGGCGCTCAAGCGTCCCACCCATACCCCGCCCTCAGG
+GTAGAAACGATGCCCTGAGGAGTAGGCGGCCGTGGAGGTCAGTGACGAAGCCTAGGGCGT
+GAGCCCGGGTCGAACGGCCTCTAGTGCAGATC
+>NG_247006.1 Apiosordaria backusii CBS 539.89 28S rRNA gene, partial sequence; from TYPE material
+CAACAGGGATTGCCTCAGTAACGGCGAGTGAAGCGGCAACAGCTCAAATTTGAAATCTGG
+CCTCGGCCCGAGTTGTAATTTGTAGAGGAAGCTTTTGGTGCGGCACCGACCGAGTCCCCT
+GGAACGGGGCGCCATAGAGGGTGAGAGCCCCGTATGGTTGGACGCCTATCCTGTGTAAAG
+CTCCTTCGACGAGTCGAGTAGTTTGGGAATGCTGCTCAAAATGGGAGGTAAATTTCTTCT
+AAAGCTAAATACTGGCCAGAGACCGATAGCGCACAAGTAGAGTGATCGAAAGATGAAAAG
+CACTTTGAAAAGAGGGTTAAATAGCACGTGAAATTGTTGAAAGGGAAGCGCTCGTGACCA
+GACTTGCGCCGCGCCGATCATCCGGGGTTCTCCCCGGTGCACTCGGCGCGGCTCAGGCCA
+GCATCGGTTTTCGCGGGGGGACAAAGGTCCCGGGAACGTAGCTCCTCCGGGAGTGTTATA
+GCCCGGGGCGTAATGCCCTCGCGGGGACCGAGGACCGCGCTTCGGCAAGGATGCTGGCGT
+AATGGTCACCGGCGACCCGTCTTGAAACACGGACCAAGGAGTCAAGGTTTTGCGCGAGTG
+TTTGGGTGTAAAACCCGCACGCGTAATGAAAGTGAACGTAGGTGAGAGCTTCGGCGCATC
+ATCGACCGATCCTGATGTATTCGGATGGATTTGAGTAGGAGCGTTAAGCCTTGGACCCGA
+AAGATGGTGAACTATGCTTGGATAGGGTGAAGCCAGAGGAAACTCTGGTGGAGGCTCGCA
+GCGGTTCTGACGTGCAAATCGATCGTCAAATCTGAGCATGGGGGCGAAAGACTAATCGAA
+CCATCTAGTAGCTGGTTACCGCCGAAGTTTCCCTCAGGATAGCAGTGTTGTTCTTCAGTT
+CTATGAGGTAAAGCGAATGATTAGGGACTCGGGGGCGCTTTTTAGCCTTCATCCATTCTC
+AAACTTTAAATATGTAGGAAGCCCTTGTTACTTAACTGAACGTGGGCGTTCGAATGAACC
+AACACTAGTGGGCCATTTTTGGTAAGCAGAACTGGCGATGCGGGATGAACCGAACGCGGG
+GTTAAGGTGCCGGAGTGGACGCTCATCAGACACCACAAAAGGCGTTAGTACATCTTGACA
+GCAGGACGGTGGCCATGGAAGTCGGAATCCGCTAAGGACTGTGTAACAACTCACCTGCCG
+AATGTACTAGCCCTGAAAATGGATGGCGCTCAAGCGTCCCACCCATACCCCGCCCTCAGG
+GTAGAAACGATGCCCTGAGGAGTAGGCGGCCGTGGGGGTCAGTGACGAAGCCTAGGGCGT
+GAGCCCGGGTCGAACGGCCTCTAGTGCAGATCTTGGTGGTAGTAA
+>NG_247002.1 Pseudopezicula betulae CPC 36499 28S rRNA gene, partial sequence; from TYPE material
+CTCAGTAACGGCGAGTGAAGCGGTAACAGCTCAAATTTGAAATCTGCCGCAAGGCCGAGT
+TGTAATTTGTAGAAGATGCTTTGGGTATGGCCCCGGTCTAAGTTCGTTGGAACACGACGT
+CATAGAGGGTGAGAATCCCGTATGTGACTGGGTGCTTTTGCCTATGTAAAGCTCTTTCGA
+CGAGTCGAGTTGTTTGGGAATGCAGCTCAAAATGGGTGGTATATTTCATCTAAAGCTAAA
+TATTGGCCAGAGACCGATAGCGCACAAGTAGAGTGATCGAAAGATGAAAAGCACTTTGGA
+AAGAGAGTTAAACAGTACGTGAAATTGTTGAAAGGGAAGCGCTTGCAACCAGACTTGCAC
+GCTGTTGATCATCCAGGCTTCTGTCTGGTGCACTCGGCAGCGTTCAGGCCAGCATCGGTT
+CTGGTGGTGGGATAAAGGCCTTGGGAATGTAGCTTCTTTCGGGGAGTGTTATAGCCCTCG
+GTGCAATGCCGCCTACCGGGACCGAGGACCGCGCTTCGGCTAGGATGCTGGCGTAATGGT
+TGTAAGCGACCCGTCTTGAAACACGGACCAAGGAGTCTAACATCTATGCGAGTGTTTGGG
+TGTTAAACCCATACGCGTAATTAACGTGAACGGAGGTGAGAACCCTTAAGGGTGCATCAT
+CGACCGGTCCTGAAGTCTTCGGATGGATCTGAGTAAGAGCATAGCTGTTGGGACCCGAAA
+GATGGTGAACTATGCCTGAATAGGGTGAAGCCAGAGGAAACTCTGGTGGAGGCTCGCAGC
+GGTTCTGACGTGCAAATCGATCGTCAAATTTGGGTATAGGGGCGAAAGACTAATCGAACC
+ATTAACTACTAGGTGGTTAAGAGGTCGCCCAAACGGCGGCCTAGTCCTCACGGGCTATAT
+GATCAAATTGCGGGGACGTCCTGTCAACTGCTCAGCTACCGCAGCTCGCCTGAAAGGGCA
+GTGCGCACCCGGTTAACGACCGCGGGGATGGTAACAACGCTGAGCTAGGGATAATCCGCA
+GCCAACCCCTACGGGCAAGCCGCCTACGGGGACAGTTCACAGACTGAATGGTCATAGGCT
+CTCGCACGAGAGTTTAAGGTACAGTCGATCCGCCGCGAGAGCGTCGGCA
+>NG_246998.1 Paraconiothyrium ajrekarii NFCCI 4810 28S rRNA gene, partial sequence; from TYPE material
+CAGCTCAAATTTGAAATCTGGCTCTCTTTGAGGGTCCGAGTTGTAATTTGCAGAGGATGC
+TTTGGCATTGGCGGCGGTCTAAGTTCCTTGGAACAGGACATCGCAGAGGGTGAGAATCCC
+GTACGTGGGCGCCTGCCTTTGCCGTGTAAAGCTCCTTCGACGAGTCGAGTTGTTTGGGAA
+TGCAGCTCTAAATGGGAGGTAAATTTCTTCTAAAGCTAAATACCGGCCAGAGACCGATAG
+CGCACAAGTAGAGTGATCGAAAGATGAAAAGTACTTTGGAAAGAGAGTCAAAAAGCACGT
+GAAATTGTTGAAAGGGAAGCGCTTGCAGCCAGACTTGCCCGCAGTTGCTCACCTAGGCTT
+TGGCCTGGGGCACTCTTCTGCGGGCAGGCCAGCATCAGTTTGGGCGGTTGGATAAAGGCC
+TCTGTCACGTATCTCCCTTCGGGGTGACCTTATAGGGGAGGCGTAATGCAACCAGCCCGG
+ACTGAGGTCCGCGCATCTGCTAGGATGCTGGCGTAATGGCTGTAAGCGGCCCGTCTTGAA
+ACACGGACCAAGGAGTCTAACATCTATGCGAGTGTTTGGGTGTCAAGCCCGGGCGCGCAA
+TGAAAGTGAACGGAGGTGGGAACCCTTTGGGTGCACCATCGACCGATCCTGATGTCTTCA
+GATGGATTTGAGTAAGAGCATAGCTGTTGGGACCCGAAAGATGGTGAACTATGCTTGAAT
+AGGGTGAAGCCAGAGGAAACTCTGGTGGAGGCTCGCAGCGGTTCTGACGTGCAAATCGAT
+CGTCAAATTTGGGCATAGGGGCGAAAGACTAATCGAACCATCTAGTAGCTGGTTCCTGCC
+GAAGTTTCCCTCAGGATAGCAGTAACGTTTTCAGTTTTATGAGGTAAAGCGAATGATTAG
+AGGCATGGGGGTTGAAACAACCTTCACCTATTCTCAAACTTTAAATATGTAAGAAGTCCT
+TGTTACTTGATTGAACGTGG
+>NG_246997.1 <em>Pyrenochaetopsis</em> kuksensis CBS 146534 28S rRNA gene, partial sequence; from TYPE material
+TACCCGCTGAAACTTAAGCATATCAATAAGCGGAGGAAAAGAAACCAACAGGGATTGCCC
+TAGTAACGGCGAGTGAAGCGGCATCAGCTCAAATTTGAAATCTGGCTCTTTCAGAGTCCG
+AGTTGTAATTTGCAGAGGGCGCTTTGGTGTCGGCAGCGGTCCAAGTTCCTTGGAACAGGA
+CGTCACAGAGGGTGAGAATCCCGTACGTGGTCGCTGACCTACACCGTGTAAAGCCCCTTC
+GACGAGTCGAGTTGTTTGGGAATGCAGCTCTAAATGGGAGGTAAATTTCTTCTAAAGCTA
+AATACTGGCCAGAGACCGATAGCGCACAAGTAGAGTGATCGAAAGATGAAAAGCACTTTG
+GAAAGAGAGTCAAACAGCACGTGAAATTGTTGAAAGGGAAGCGCTTGCAGCCAGACTTGC
+TTGTAGTTGCTCATCCGGGCTTTTGCCCGGTGCACTCTTCTGCGAGCAGGCCAGCATCAG
+TTTGGACGGTTGGATAAAGGCCTCTGTCACGTACCTTCTCTCGGGAAGGCCTTATAGGGG
+AGGCGTCATGCAACCAGTCTGGACTGAGGTCCGCGCATCTGCTAGGATGCTGGCGTAATG
+GCTGTAAGCGGCCCGTCTTGAAACACGGACCAAGGAGTCTAACATCTATGCGAGTGTTTG
+GGTGTCAAGCCCGAGCGCGTAATGAAAGTGAACGGAGGTGGGATCCCGCAAGGGTGCACC
+ATCGACCGATCCTGATGTCTTCGGATGGATTTGAGTAAGAGCATGGCTGTTGGGACCCGA
+AAGATGGTGAACTATGCTTGAATAGGGTGAAGCCAGAGGAAACTCTGGTGGAGGCTCGCA
+GCGGTTCTGACGTGCAAATCGATCGTCAAATTTGGGCATAGGGGCGAAAGACTAATCGAA
+>NG_246996.1 <em>Paraphoma</em> ledniceana CBS 146533 28S rRNA gene, partial sequence; from TYPE material
+TTGCCTTAGTAACGGCGAGTGAAGCGGCAATAGCTCAAATTTGAAATCTGGCTCTTTCAG
+AGTCCGAGTTGTAATTTGCAGAGGGCGCTTTGGTGTTGGCAGCGGTCCAAGTTCCTTGGA
+ACAGGACGTCACAGAGGGTGAGAATCCCGTACGTGGTCGCTAGCCTTCGCCGTGTAAAGC
+CCCTTCGACGAGTCGAGTTGTTTGGGAATGCAGCTCTAAATGGGAGGTAAATTTCTTCTA
+AAGCTAAATACTGGCCAGAGACCGATAGCGCACAAGTAGAGTGATCGAAAGATGAAAAGC
+ACTTTGGAAAGAGAGTCAAATAGCACGTGAAATTGTTGAAAGGGAAGCGCTTGCAGCCAG
+ACTTGCCTGTAGTTGCTTATCCGGACTTTTGTCCGGTGCACTCTTCTGCGGGCAGGCCAG
+CATCAGTTTGGGCGGTTGGATAAAGGTCTCTGTCATGTACCTCTCTTCGGGGAGAACTTA
+TAGGGGAGACGACATGCAACCAGCCTGGACTGAGGTCCGCGCATCTGCTAGGATGCTGGC
+GTAATGGCTGTAAGCGGCCCGTCTTGAAACACGGACCAAGGAGTCTAACATCTATGCGAG
+TGTTTGGGTGTCAAGCCCAGACGCGTAATGAAAGTGAACGGAGGTGGGAACCCTTTGGGT
+GCACCATCGACCGATCCTGATGTCTTCGGATGGATTTGAGTAAGAGCATGGCTGTTGGGA
+CCCGAAAGATGGTGAACTATGCTTGAATAGGGTGAAGCCAGAGGAAACTCTGGTGGAGGC
+TCGCAGCGGTTCTGACGTGCAAATCGATCGTCAAATTTGGGCATAGGGGCGAAAGACTAA
+TCGAACTATCTAGTAGCTGGTTCCTGCCGAAGTTTCCCTCAGGATAGCAGTAACGTATTC
+AGTTTTATGAGGTAAAGCGAATGATTAGAGGCCTGGGGGTTGAAACAACCTTCACCTATT
+CTCAAACTTTAAATATGTAAGAAGTCCTTGTTACTTGATTGAACGTGGACACTTGAATGT
+ACCGTTACTAGTGGGCCATTTTTGG
+>NG_246971.1 <em>Sphaeropsis</em> chromolaenicola MFLUCC 17-1499 28S rRNA gene, partial sequence; from TYPE material
+ATCAATAAGCGGAGGAAAAGAAACCAACAGGGATTGCCTTAGTAACGGCGAGTGAAGCGG
+CAATAGCTCAAATTTGAAAGCTGGCCCTTTCAGGGTCCGCGTTGTAATTTGTAGAGGATG
+ATTCGGCGAGGGCTCCCGCCTAAGTCCCCTGGAACGGGGCGTCATAGAGGGTGAGAATCC
+CGTATGCGGTGGGCTGCCTTAGCCATGTGAATCTCCTTCGACGAGTCGAGTTGTTTGGGA
+ATGCAGCTCTAAATGGGAGGTAAATTTCTTCTAAAGCTAAATACCGGCCAGAGACCGATA
+GCGCACAAGTAGAGTGATCGAAAGATGAAAAGCACTTTGGAAAGAGAGTTAAAAAGTACG
+TGAAATTGTTGAAAGGGAAGCGCTTGCAACCAGACTTGTCCGCAGTTGCTCAGCCGGTCT
+CCTGACCGGCGTACTCTTCTGCGGCCAGGCCAGCATCAGTTCGGGCGGTCGGATAAAGAC
+CTCGGGAATGTAGCTCCTCTCGGGGAGTGTTATAGCCCGGGGTGGAATGCGGCCAGCCTG
+GACTGAGGATCTCGCTTCGGCAAGGATGCTGGCGTAATGGTTGTAAGCGGCCCGTCTTGA
+AACACGGACCAAGGAGTCTAACATCTATGCGAGTGTTTGGGTGTCAAACCCATACGCGTA
+ATGAAAGTGAACGGAGGTGGGAACCCGCAAGGGCGCACCATCGGCCGATCCTGATGTCTT
+CGGATGGATTTGAGCAAGAGCATAGCTGTTGGGACCCGAAAGATGGTGAACTATGCCTGA
+ATAGGGTGAAGCCAGAGGAAACTCTGGTGGAGGCTCGCAGCGGTTCTGACGTGCAAATCG
+ATCGTCAAATTTGGGTATAGGGGCGAAAGACTAATCGAACCATCTAGTAGCTGGTTCCTG
+C
+>NG_246965.1 Melanops fagicola MFLUCC 13-0504 28S rRNA gene, partial sequence; from TYPE material
+GCGGCAGGGAGAGACCAACAGGGATTGCCTTAGTAACGGCGAGTGAAGCGGCAACAGCTC
+AAATTTGAAATCTGGCCCCCTCGGGGTCCGAGTTGTAATTTGTAGAGGATGCTTCGGCGA
+GGGCTCCCGTCTAAGTTCCTTGGAACAGGACGTCGTAGAGGGTGAGAATCCCGTATGCGA
+TGGGTTGCCCGAGCCATGTGAAGCTCCTTCGACGAGTCGAGTTGTTTGGGAATGCAGCTC
+TAAATGGGAGGTAAATTTCTTCTAAAGCTAAATACCGGCCAGAGACCGATAGCGCACAAG
+TAGAGTGATCGAAAGATGAAAAGCACTTTGGAAAGAGAGTTAAAAAGTACGTGAAATTGT
+TGAAAGGGAAGCGCTTGCAGCCAGACTCGTCCGCAGTTGCTCAGCCGGTCTCCTGACCGG
+TGTACTCTTCTGCGGCCGGGCCAGCATCAGTTCGGGCGGTCGGATAAAGGTCCCGGGAAT
+GTAGCTCCTCTCGGGGAGTGTTATAGCCCGGGGCGGAATGCGGCCAGCCCGGACTGAGGA
+TCTCGCTTCGGCTAGGATGCTGGCGTAATGGCTGTAAGCGGCCCGTCTTGAAACACGGAC
+CAAGGAGTCTAACATCTACGCGAGTGTTTGGGTGTCAAACCCAAGCGCGTAATTAAAGTG
+AACGGAGGTGGGAACCCCTCGCGGGGCGCACCATCGACCGATCCTGATGTCTTCGGATGG
+ATTTGAGTAAGAGCGTAGCTGTTGGGACCCGAAAGATGGTGAACTATGCCTGAATAGGGT
+GAAGCCAGAGGAAACTCTGGTGGAGGCTCGCAGCGGTTCTGACGTGCAAATCGATCGTCA
+AATTTGGGTATAGGGGCGAAAGACTAATCGAACCATCTAGTAGCTGGTTCCTGCCGAAGT
+TCCCCTC
+>NG_246957.1 Penicillium uttarakhandense NFCCI 4808 28S rRNA gene, partial sequence; from TYPE material
+GATTGCCTCAGTAACGGCGAGTGAAGCGGCAAGAGCTCAAATTTGAAAGCTGGCTCCTTC
+GGGGTCCGCATTGTAATTTGCAGAGGATGCTTCGGGAGTGGCCCCCATCTAAGTGCCCTG
+GAACGGGCCGTCATAGAGGGTGAGAATCCCGTCTGGGATGGGGTGTCCACGCCCGTGTGA
+AGCTCCTTCGACGAGTCGAGTTGTTTGGGAATGCAGCTCTAAATGGGTGGTAAATTTCAT
+CTAAAGCTAAATACTGGCCGGAGACCGATAGCGCACAAGTAGAGTGATCGAAAGATGAAA
+AGCACTTTGAAAAGAGAGTTAAACAGCACGTGAAATTGTTGAAAGGGAAGCGCTTGCGAC
+CAGACTCGCCCACGGGGTTCAGCCGGCATTCGTGCCGGTGTACTTCCCCGCGGGCGGGCC
+AGCGTCGGTTTGGGCGGCCGGTCAAAGGCCCTCGGAATGTAACGCCCCCCGGGGCGTCTT
+ATAGCCGAGGGTGCCATGCGGCCAGCCCGGACCGAGGAACGCGCTTCGGCTCGGACGCTG
+GCATAATGGTCGTAAGCGACCCGTCTTGAAACACGGACCAAGGAGTCTAACATCTACGCG
+AGTGTTCGGGTGTCAAACCCGTGCGCGCAGTGAAAGCGAACGGAGGTGGGAACCCCTCGG
+GGTGCACCATCGACCGATCCTGATGTCTTCGGATGGATTTGAGTAAGAGCGTAGCTGTTG
+GGACCCGAAAGATGGTGAACTATGCCTGAATAGGGCGAAGCCAGAGGAAACTCTGGTGGA
+GGCTCGCAGCGGTTCTGACGTGCAAATCGATCGTCGAATTTGGGTATAGGGGCGAAAGAC
+TAATCGAACCATCTAGTAGCTGGTTCCTGCCGAAGTTTCCCTCAGGATAGCAGTAACGCG
+AATTCAGTTTTATGAGGTAAAGCGAATGATTAGAGGCCTTGGGGTTGAAACAACCTTAAC
+CTATTCTCAAACTTTAAATATGTAAGAAGCCCTTGTTGCTTAATTGAACGTGGGCATTAG
+AATGATGCGTTACTAGTGGGCCATTTTTGGTAAGCAGAACTGGCGATGCGGGATGAACCG
+AACGCGAGGTTAAGGTGCCGGAATACACGCTCATCAGACACCACAAAAGGTGTTAGTTCA
+TCTAGACAGCCCGACGGTGGCCATGGAAGTCGGAATCCGCTAAGGAGTGTGTAACAACTC
+ACGGGCCGAATGAACTAGCCCTGAAAATGGATGGCGCTCAAGCGTGTTACCCATACCTCG
+CCGTCGGGGTAGAAACGATGCCCCGACGAGTAGGCAGGCGTGGGGGTCCGTGACGAAGC
+>NG_246955.1 <em>Didymella</em> corylicola CBS 146357 28S rRNA gene, partial sequence; from TYPE material
+GAAAAGAAACCAACAGGGATTGCCCTAGTAACGGCGAGTGAAGCGGCAACAGCTCAAATT
+TGAAATCTGGCGTCTTCGGCGTCCGAGTTGTAATTTGCAGAGGGCGCTTTGGCATTGGCA
+GCGGTCCAAGTTCCTTGGAACAGGACGTCACAGAGGGTGAGAATCCCGTACGTGGTCGCT
+AGCCTTTACCGTGTAAAGCCCCTTCGACGAGTCGAGTTGTTTGGGAATGCAGCTCTAAAT
+GGGAGGTAAATTTCTTCTAAAGCTAAATACTGGCCAGAGACCGATAGCGCACAAGTAGAG
+TGATCGAAAGATGAAAAGCACTTTGGAAAGAGAGTTAAAAAGCACGTGAAATTGTTGAAA
+GGGAAGCGCTTGCAGCCAGACTTGCCTGTAGTTGCTCATCCGGGTTTCTACCCGGTGCAC
+TCTTCTATAGGCAGGCCAGCATCAGTTTGGGCGGTTGGATAAAGGTCTCTGTCATGTACC
+TCTCTTCGGGGAGAACTTATAGGGGAGACGACATGCAACCAGCCTGGACTGAGGTCCGCG
+CATCTGCTAGGATGCTGGCGTAATGGCTGTAAGCGGCCCGTCTTGAAACACGGACCAAGG
+AGTCTAACATCTATGCGAGTGTTTGGGTGTCAAGCCCGAGCGCGTAATGAAAGTGAACGG
+AGGTGGGAACCTTTCGGGGTGCACCATCGACCGATCCTGATGTCTTCGGATGGATTTGAG
+TAAGAGCATAGCTGTTGGGACCCGAAAGATGGTGAACTATGCTTGAATAGGGTGAAGCCA
+GAGGAAACTCTGGTGGAGGCTCGCAGCGGTTCTGACGTGCAAATCGATCGTCAAATTTGG
+GCATAGGGGCGAAAGACTAATCGAACTATCTAGTAGCTGGTTCCTGCCGAAGTTTCCCTC
+AGGATAGCAGTAACGTTTTCAGTTTTATGAGGTAAAGCGAATGATTAGAGGCCTGGGGGT
+TGAAACAACCTTCACCTATTCTCAAACTTTAAATATGTAAGAAGTCCTTGTTACTTGATT
+GAACGTGGACAGTTGAATGTATCGTTACTAGTGGGCCATTTTTGGTAAGCAGAACTGGCG
+ATGCGGGATGAACCGAACGCGGGGTTAAGGTGCCAGAATATACGCTCATCAGACACCACA
+AAAGGTGTTAGTTCATCTAGACAGCAGGACGGTGGCCATGGAAGTCGGAATCCGCTAAGG
+AGTGTGTAACAACTCACCTGCCGAATGAACTAGCCCTGAAAATGGATGGCGCTCAAGCGT
+GTTACCCATACCCCGCCGCTGGGGCAGGATTTATGCCCCAGCGAGTAGGCAGGCGTGGAG
+GTCCGTGACGAAGCCTTGGGGGTGACCCC
+>NG_246953.1 <em>Leptosphaerulina</em> sisyrinchiicola CBS 121688 28S rRNA gene, partial sequence; from TYPE material
+ACAGGGATTGCCCTAGTAACGGCGAGTGAAGCGGCAACAGCTCAAATTTGAAATCTGGCG
+TCTTTGGCGTCCGAGTTGTAATTTGCAGAGGGCGCTTTGGCATTGGCAGCGGTCCAAGTT
+CCTTGGAACAGGACGTCACAGAGGGTGAGAATCCCGTACGTGGTCGCTAGCCTTTACCGT
+GTAAAGCCCCTTCGACGAGTCGAGTTGTTTGGGAATGCAGCTCTAAATGGGAGGTAAATT
+TCTTCTAAAGCTAAATACTGGCCAGAGACCGATAGCGCACAAGTAGAGTGATCGAAAGAT
+GAAAAGCACTTTGGAAAGAGAGTTAAAAAGCACGTGAAATTGTTGAAAGGGAAGCGCTTG
+CAGCCAGACTTGCCTGTAGTTGCTCATCCGGGTTTCTACCCGGTGCACTCTTCTATAGGC
+AGGCCAGCATCAGTTTGGGCGGTTGGATAAAGGTCTCTGTCATGTACCTCCTTTCGGGGA
+GAACTTATAGGGGAGACGACATGCAACCAGCCTGGACTGAGGTCCGCGCATCTGCTAGGA
+TGCTGGCGTAATGGCTGTAAGCGGCCCGTCTTGAAACACGGACCAAGGAGTCTAACATCT
+ATGCGAGTGTTTGGGTGTCAAGCCCGAGCGCGTAATGAAAGTGAACGGAGGTGGGAACCT
+TTCGGGGTGCACCATCGACCGATCCTGATGTCTTCGGATGGATTTGAGTAAGAGCATAGC
+TGTTGGGACCCGAAAGATGGTGAACTATGCTTGAATAGGGTGAAGCCAGAGGAAACTCTG
+GTGGAGGCTCGCAGCGGTTCTGACGTGCAAATCGATCGTCAAATTTGGGCATAGGGGCGA
+AAGACTAATCGAACTATCTAGTAGCTGGTTCCTGCCGAAGTTTCCCTCAGGATAGCAGTA
+ACGTTTTCAGTTTTATGAGGTAAAGCGAATGATTAGAGGCATGGGGGTTGAAACAACCTT
+>NG_246952.1 <em>Leptosphaerulina</em> obtusispora CBS 569.94 28S rRNA gene, partial sequence; from TYPE material
+ACAGGGATTGCCCTAGTAACGGCGAGTGAAGCGGCAACAGCTCAAATTTGAAATCTGGCG
+TCTTTGGCGTCCGAGTTGTAATTTGCAGAGGGCGCTTTGGCATTGGCAGCGGTCCAAGTT
+CCTTGGAACAGGACGTCACAGAGGGTGAGAATCCCGTACGTGGTCGCTAGCCTTTACCGT
+GTAAAGCCCCTTCGACGAGTCGAGTTGTTTGGGAATGCAGCTCTAAATGGGAGGTAAATT
+TCTTCTAAAGCTAAATACTGGCCAGAGACCGATAGCGCACAAGTAGAGTGATCGAAAGAT
+GAAAAGCACTTTGGAAAGAGAGTTAAAAAGCACGTGAAATTGTTGAAAGGGAAGCGCTTG
+CAGCCAGACTTGCCTGTAGTTGCTCATCCGGGTTTCTACCCGGTGCACTCTTCTATAGGC
+AGGCCAGCATCAGTTTGGGCGGTTGGATAAAGGTCTCTGTCATGTACCTCCTTTCGGGGA
+GAACTTATAGGGGAGACGACATGCAACCAGCCTGGACTGAGGTCCGCGCATCTGCTAGGA
+TGCTGGCGTAATGGCTGTAAGCGGCCCGTCTTGAAACACGGACCAAGGAGTCTAACATCT
+ATGCGAGTGTTTGGGTGTCAAGCCCGAGCGCGTAATGAAAGTGAACGGAGGTGGGAACCT
+TTCGGGGTGCACCATCGACCGATCCTGATGTCTTCGGATGGATTTGAGTAAGAGCATAGC
+TGTTGGGACCCGAAAGATGGTGAACTATGCTTGAATAGGGTGAAGCCAGAGGAAACTCTG
+GTGGAGGCTCGCAGCGGTTCTGACGTGCAAATCGATCGTCAAATTTGGGCATAGGGGCGA
+AAGACTAATCGAACTATCTAGTAGCTGGTTCCTGCCGAAGTTTCCCTCAGGATAGCAGTA
+ACGTTTTCAGTTTTATGAGGTAAAGCGAATGATTAGAGGCATGGGGGTTGAAACAACCTT
+>NG_246950.1 <em>Phomatodes</em> pilosa CBS 628.68 28S rRNA gene, partial sequence; from TYPE material
+ACAGGGATTGCCCTAGTAACGGCGAGTGAAGCGGCAACAGCTCAAATTTGAAATCTGGCG
+TCTTTGGCGTCCGAGTTGTAATTTGCAGAGGGCGCTTTGGCATTGGCAGCGGTCCAAGTT
+CCTTGGAACAGGACGTCACAGAGGGTGAGAATCCCGTACGTGGTCGCTAGCCTTTACCGT
+GTAAAGCCCCTTCGACGAGTCGAGTTGTTTGGGAATGCAGCTCTAAATGGGAGGTAAATT
+TCTTCTAAAGCTAAATACTGGCCAGAGACCGATAGCGCACAAGTAGAGTGATCGAAAGAT
+GAAAAGCACTTTGGAAAGAGAGTTAAAAAGCACGTGAAATTGTTGAAAGGGAAGCGCTTG
+CAGCCAGACTTGCCTGTAGTTGCTCATCCGGGTTTTTACCCGGTGCACTCTTCTATAGGC
+AGGCCAGCATCAGTTTGGGCGGTTGGATAAAGGTCTCTGTCATGTACCTCTCTTCGGGGA
+GAACTTATAGGGGAGACGACATGCAACCAGCCTGGACTGAGGTCCGCGCATCTGCTAGGA
+TGCTGGCGTAATGGCTGTAAGCGGCCCGTCTTGAAACACGGACCAAGGAGTCTAACATCT
+ATGCGAGTGTTTGGGTGTCAAGCCCGAACGCGTAATGAAAGTGAACGGAGGTGGGAACCT
+TTCGGGGTGCACCATCGACCGATCCTGATGTCTTCGGATGGATTTGAGTAAGAGCATAGC
+TGTTGGGACCCGAAAGATGGTGAACTATGCTTGAATAGGGTGAAGCCAGAGGAAACTCTG
+GTGGAGGCTCGCAGCGGTTCTGACGTGCAAATCGATCGTCAAATTTGGGCATAGGGGCGA
+AAGACTAATCGAACTATCTAGTAGCTGGTTCCTGCCGAAGTTTCCCTCAGGATAGCAGTA
+ACGTTTTCAGTTTTATGAGGTAAAGCGAATGATTAGAGGCCTGGGGGTTGAAACAACCTT
+>NG_246949.1 <em>Ascochyta</em> pilosella CBS 583.97 28S rRNA gene, partial sequence; from TYPE material
+TGAAGCGGCAACAGCTCAAATTTGAAATCTGGCGTCTTTGGCGTCCGAGTTGTAATTTGC
+AGAGGGCGCTTTGGCATTGGCAGCGGTCCAAGTTCCTTGGAACAGGACGTCACAGAGGGT
+GAGAATCCCGTACGTGGTCGCTAGCCTTTACCGTGTAAAGCCCCTTCGACGAGTCGAGTT
+GTTTGGGAATGCAGCTCTAAATGGGAGGTAAATTTCTTCTAAAGCTAAATACTGGCCAGA
+GACCGATAGCGCACAAGTAGAGTGATCGAAAGATGAAAAGCACTTTGGAAAGAGAGTTAA
+AAAGCACGTGAAATTGTTGAAAGGGAAGCGCTTGCAGCCAGACTTGCCTGTAGTTGCTCA
+TCCGGGTTTTTACCCGGTGCACTCTTCTATAGGCAGGCCAGCATCAGTTTGGGCGGTTGG
+ATAAAGGTCTCTGTCATGTACCTCTCTTCGGGGAGAACTTATAGGGGAGACGACATGCAA
+CCAGCCTGGACTGAGGTCCGCGCATCTGCTAGGATGCTGGCGTAATGGCTGTAAGCGGCC
+CGTCTTGAAACACGGACCAAGGAGTCTAACATCTATGCGAGTGTTTGGGTGTCAAGCCCG
+AACGCGTAATGAAAGTGAACGGAGGTGGGAACCTTTCGGGGTGCACCATCGACCGATCCT
+GATGTCTTCGGATGGATTTGAGTAAGAGCATAGCTGTTGGGACCCGAAAGATGGTGAACT
+ATGCTTGAATAGGGTGAAGCCAGAGGAAACTCTGGTGGAGGCTCGCAGCGGTTCTGACGT
+GCAAATCGATCGTCAAATTTGGGCATAGGGGCGAAAGACTAATCGAACTATCTAGTAGCT
+GGTTCCTGCCGAAGTTTCCCTCAGGATAGCAGTAACGTTTTCAGTTTTATGAGGTAAAGC
+GAATGATTAGAGGCCTGGGGGTTGAAACAACCTT
+>NG_246948.1 <em>Sclerophomella</em> parvula CBS 620.68 28S rRNA gene, partial sequence; from TYPE material
+ACAGGGATTGCCCTAGTAACGGCGAGTGAAGCGGCAACAGCTCAAATTTGAAATCTGGCG
+TCTTTGGCGTCCGAGTTGTAATTTGCAGAGGGCGCTTTGGTATTGGCAGCGGTCCAAGTT
+CCTTGGAACAGGACGTCACAGAGGGTGAGAATCCCGTACGTGGTCGCTAACCTTTACCGT
+GTAAAGCCCCTTCGACGAGTCGAGTTGTTTGGGAATGCAGCTCTAAATGGGAGGTAAATT
+TCTTCTAAAGCTAAATACTGGCCAGAGACCGATAGCGCACAAGTAGAGTGATCGAAAGAT
+GAAAAGCACTTTGGAAAGAGAGTTAAAAAGCACGTGAAATTGTTGAAAGGGAAGCGCTTG
+CAGCCAGACTTGCTTGTAGTTGCTCATCCGGGTTTTTACCCGGTGCACTCTTCTATAAGC
+AGGCCAGCATCAGTTTGGGCGGTTGGATAAAGGTCTCTGTCATGTACCTCTCTTCGGGGA
+GAACTTATAGGGGAGACGACATGCAACCAGCCTGGACTGAGGTCCGCGCATCTGCTAGGA
+TGCTGGCGTAATGGCTGTAAGCGGCCCGTCTTGAAACACGGACCAAGGAGTCTAACATCT
+ATGCGAGTGTTTGGGTGTCAAGCCCGAGCGCGTAATGAAAGTGAACGGAGGTGGGAACCT
+TTCGGGGTGCACCATCGACCGATCCTGATGTCTTCGGATGGATTTGAGTAAGAGCATAGC
+TGTTGGGACCCGAAAGATGGTGAACTATGCTTGAATAGGGTGAAGCCAGAGGAAACTCTG
+GTGGAGGCTCGCAGCGGTTCTGACGTGCAAATCGATCGTCAAATTTGGGCATAGGGGCGA
+AAGACTAATCGAACTATCTAGTAGCTGGTTCCTGCCGAAGTTTCCCTCAGGATAGCAGTA
+ACGTTTTCAGTTTTATGAGGTAAAGCGAATGATTAGAGGCCTGGGGGTTGAAACAACCTT
+>NG_246947.1 <em>Paramicrosphaeropsis</em> ellipsoidea CBS 194.97 28S rRNA gene, partial sequence; from TYPE material
+ACAGGGATTGCCCTAGTAACGGCGAGTGAAGCGGCAACAGCTCAAATTTGAAATCTGGCG
+TCTTTGGCGTCCGAGTTGTAATTTGCAGAGGGCGCTTTGGCATTGGCAGCGGTCCAAGTT
+CCTTGGAACAGGACGTCACAGAGGGTGAGAATCCCGTACGTGGTCGCTAGCCTTTACCGT
+GTAAAGCCCCTTCGACGAGTCGAGTTGTTTGGGAATGCAGCTCTAAATGGGAGGTAAATT
+TCTTCTAAAGCTAAATATTGGCCAGAGACCGATAGCGCACAAGTAGAGTGATCGAAAGAT
+GAAAAGCACTTTGGAAAGAGAGTTAAAAAGCACGTGAAATTGTTGAAAGGGAAGCGCTTG
+CAGCCAGACTTGCCTGTAGTTGCTCATCCGGGTTTCTACCCGGTGCACTCTTCTATAGGC
+AGGCCAGCATCAGTTTGGGCGGTTGGATAAAGGTCTCTGTCATGTACCTCTCTTCGGGGA
+GAACTTATAGGGGAGACGACATGCAACCAGCCTGGACTGAGGTCCGCGCATCTGCTAGGA
+TGCTGGCGTAATGGCTGTAAGCGGCCCGTCTTGAAACACGGACCAAGGAGTCTAACATCT
+ATGCGAGTGTTTGGGTGTCAAGCCCGAGCGCGTAATGAAAGTGAACGGAGGTGGGAACCT
+TTCGGGGTGCACCATCGACCGATCCTGATGTCTTCGGATGGATTTGAGTAAGAGCATAGC
+TGTTGGGACCCGAAAGATGGTGAACTATGCTTGAATAGGGTGAAGCCAGAGGAAACTCTG
+GTGGAGGCTCGCAGCGGTTCTGACGTGCAAATCGATCGTCAAATTTGGGCATAGGGGCGA
+AAGACTAATCGAACTATCTAGTAGCTGGTTCCTGCCGAAGTTTCCCTCAGGATAGCAGTA
+ACGTTTTCAGTTTTATGAGGTAAAGCGAATGATTAGAGGCCTGGGGGTTGAAACAACCTT
+>NG_246946.1 <em>Microsphaeropsis</em> fusca CBS 116670 28S rRNA gene, partial sequence; from TYPE material
+ACAGGGATTGCCCTAGTAACGGCGAGTGAAGCGGCAACAGCTCAAATTTGAAATCTGGCG
+TCTTTGGCGTCCGAGTTGTAATTTGCAGAGGGCGCTTTGGCATTGGCAGCGGTCCAAGTT
+CCTTGGAACAGGACGTCACAGAGGGTGAGAATCCCGTACGTGGTCGCTAGCCTTTACCGT
+GTAAAGCCCCTTCGACGAGTCGAGTTGTTTGGGAATGCAGCTCTAAATGGGAGGTAAATT
+TCTTCTAAAGCTAAATACTGGCCAGAGACCGATAGCGCACAAGTAGAGTGATCGAAAGAT
+GAAAAGCACTTTGGAAAGAGAGTTAAAAAGCACGTGAAATTGTTGAAAGGGAAGCGCTTG
+CAGCCAGACTTGCCTGTAGTTGCTCATCCGGGTTTTTACCCGGTGCACTCTTCTATAGGC
+AGGCCAGCATCAGTTTGGGCGGTTGGATAAAGGTCTCTGTCATGTACCTCTCTTCGGGGA
+GAACTTATAGGGGAGACGACATGCAACCAGCCTGGACTGAGGTCCGCGCATCTGCTAGGA
+TGCTGGCGTAATGGCTGTAAGCGGCCCGTCTTGAAACACGGACCAAGGAGTCTAACATCT
+ATGCGAGTGTTTGGGTGTCAAGCCCGAGCGCGTAATGAAAGTGAACGGAGGTGGGAACCT
+TTCGGGGTGCACCATCGACCGATCCTGATGTCTTCGGATGGATTTGAGTAAGAGCATAGC
+TGTTGGGACCCGAAAGATGGTGAACTATGCTTGAATAGGGTGAAGCCAGAGGAAACTCTG
+GTGGAGGCTCGCAGCGGTTCTGACGTGCAAATCGATCGTCAAATTTGGGCATAGGGGCGA
+AAGACTAATCGAACTATCTAGTAGCTGGTTCCTGCCGAAGTTTCCCTCAGGATAGCAGTA
+ACGTTTTCAGTTTTATGAGGTAAAGCGAATGATTAGAGGCCTGGGGGTTGAAACAACCTT
+>NG_246945.1 <em>Nothophoma</em> infuscata CBS 121931 28S rRNA gene, partial sequence; from TYPE material
+ACAGGGATTGCCCTAGTAACGGCGAGTGAAGCGGCAACAGCTCAAATTTGAAATCTGGCG
+TCTTTGGCGTCCGAGTTGTAATTTGCAGAGGGCGCTTTGGCATTGGCAGCGGTCCAAGTT
+CCTTGGAACAGGACGTCACAGAGGGTGAGAATCCCGTACGTGGTCGCTAGCCTTTACCGT
+GTAAAGCCCCTTCGACGAGTCGAGTTGTTTGGGAATGCAGCTCTAAATGGGAGGTAAATT
+TCTTCTAAAGCTAAATACTGGCCAGAGACCGATAGCGCACAAGTAGAGTGATCGAAAGAT
+GAAAAGCACTTTGGAAAGAGAGTTAAAAAGCACGTGAAATTGTTGAAAGGGAAGCGCTTG
+CAGCCAGACTTGCCTGTAGTTGCTCATCCGGGTTTTTACCCGGTGCACTCTTCTACAGGC
+AGGCCAGCATCAGTTTGGGCGGTTGGATAAAGGTCTCTGTCATGTACCTCTCTTCGGGGA
+GAACTTATAGGGGAGACGACATGCAACCAGCCTGGACTGAGGTCCGCGCATCTGCTAGGA
+TGCTGGCGTAATGGCTGTAAGCGGCCCGTCTTGAAACACGGACCAAGGAGTCTAACATCT
+ATGCGAGTGTTTGGGTGTCAAGCCCGAGCGCGTAATGAAAGTGAACGGAGGTGGGAACCT
+TTCGGGGTGCACCATCGACCGATCCTGATGTCTTCGGATGGATTTGAGTAAGAGCATAGC
+TGTTGGGACCCGAAAGATGGTGAACTATGCTTGAATAGGGTGAAGCCAGAGGAAACTCTG
+GTGGAGGCTCGCAGCGGTTCTGACGTGCAAATCGATCGTCAAATTTGGGCATAGGGGCGA
+AAGACTAATCGAACTATCTAGTAGCTGGTTCCTGCCGAAGTTTCCCTCAGGATAGCAGTA
+ACGTTTTCAGTTTTATGAGGTAAAGCGAATGATTAGAGGCCTGGGGGTTGAAACAACCTT
+>NG_246944.1 <em>Vacuiphoma</em> ferulae CBS 353.71 28S rRNA gene, partial sequence; from TYPE material
+ACAGGGATTGCCCTAGTAACGGCGAGTGAAGCGGCAACAGCTCAAATTTGAAATCTGGCG
+TCTTTGGCGTCCGAGTTGTAATTTGCAGAGGGCGCTTTGGCATTGGCAGCGGTCCAAGTT
+CCTTGGAACAGGACGTCACAGAGGGTGAGAATCCCGTACGTGGTCGCTAGCCTTTACCGT
+GTAAAGCCCCTTCGACGAGTCGAGTTGTTTGGGAATGCAGCTCTAAATGGGAGGTAAATT
+TCTTCTAAAGCTAAATACTGGCCAGAGACCGATAGCGCACAAGTAGAGTGATCGAAAGAT
+GAAAAGCACTTTGGAAAGAGAGTTAAAAAGCACGTGAAATTGTTGAAAGGGAAGCGCTTG
+CAGCCAGACTTGCCTGTAGTTGCTCATCCGGGTTTTTACCCGGTGCACTCTTCTATAGGC
+AGGCCAGCATCAGTTTGGGCGGTTGGATAAAGGTCTCTGTCATGTACCTCTCTTCGGGGA
+GAACTTATAGGGGAGACGACATGCAACCAGCCTGGACTGAGGTCCGCGCATCTGCTAGGA
+TGCTGGCGTAATGGCTGTAAGCGGCCCGTCTTGAAACACGGACCAAGGAGTCTAACATCT
+ATGCGAGTGTTTGGGTGTCAAGCCCGAGCGCGTAATGAAAGTGAACGGAGGTGGGAACCT
+TTCGGGGTGCACCATCGACCGATCCTGATGTCTTCGGATGGATTTGAGTAAGAGCATAGC
+TGTTGGGACCCGAAAGATGGTGAACTATGCTTGAATAGGGTGAAGCCAGAGGAAACTCTG
+GTGGAGGCTCGCAGCGGTTCTGACGTGCAAATCGATCGTCAAATTTGGGCATAGGGGCGA
+AAGACTAATCGAACTATCTAGTAGCTGGTTCCTGCCGAAGTTTCCCTCAGGATAGCAGTA
+ACGTTTTCAGTTTTATGAGGTAAAGCGAATGATTAGAGGCCTGGGGGTTGAAACAACCTT
+>NG_246943.1 <em>Vacuiphoma</em> laurina CBS 119636 28S rRNA gene, partial sequence; from TYPE material
+ATTGCCCTAGTAACGGCGAGTGAAGCGGCAACAGCTCAAATTTGAAATCTGGCGTCTTTG
+GCGTCCGAGTTGTAATTTGCAGAGGGCGCTTTGGCATTGGCAGCGGTCCAAGTTCCTTGG
+AACAGGACGTCACAGAGGGTGAGAATCCCGTACGTGGTCGCTAGCCTTTACCGTGTAAAG
+CCCCTTCGACGAGTCGAGTTGTTTGGGAATGCAGCTCTAAATGGGAGGTAAATTTCTTCT
+AAAGCTAAATACTGGCCAGAGACCGATAGCGCACAAGTAGAGTGATCGAAAGATGAAAAG
+CACTTTGGAAAGAGAGTTAAAAAGCACGTGAAATTGTTGAAAGGGAAGCGCTTGCAGCCA
+GACTTGCCTGTAGTTGCTCATCCGGGTTTCTACCCGGTGCACTCTTCTATAGGCAGGCCA
+GCATCAGTTTGGGCGGTTGGATAAAGGTCTCTGTCATGTACCTCTCTTCGGGGAGAACTT
+ATAGGGGAGACGACATGCAACCAGCCTGGACTGAGGTCCGCGCATCTGCTAGGATGCTGG
+CGTAATGGCTGTAAGCGGCCCGTCTTGAAACACGGACCAAGGAGTCTAACATCTATGCGA
+GTGTTTGGGTGTCAAGCCCGAGCGCGTAATGAAAGTGAACGGAGGTGGGAACCTTTCGGG
+GTGCACCATCGACCGATCCTGATGTCTTCGGATGGATTTGAGTAAGAGCATAGCTGTTGG
+GACCCGAAAGATGGTGAACTATGCTTGAATAGGGTGAAGCCAGAGGAAACTCTGGTGGAG
+GCTCGCAGCGGTTCTGACGTGCAAATCGATCGTCAAATTTGGGCATAGGGGCGAAAGACT
+AATCGAACTATCTAGTAGCTGGTTCCTGCCGAAGTTTCCCTCAGGATAGCAGTAACGTTT
+TCAGTTTTATGAGGTAAAGCGAATGATTAGAGGCCTGGGGGTTGAAACAACCTT
+>NG_246942.1 <em>Macroventuria</em> terrestris CBS 127771 28S rRNA gene, partial sequence; from TYPE material
+ACAGGGATTGCCCTAGTAACGGCGAGTGAAGCGGCAACAGCTCAAATTTGAAATCTGGCG
+TCTTTGGCGTCCGAGTTGTAATTTGCAGAGGGCGCTTTGGCATTGGCAGCGGTCCAAGTT
+CCTTGGAACAGGACGTCACAGAGGGTGAGAATCCCGTACGTGGTCGCTAGCCTTTACCGT
+GTAAAGCCCCTTCGACGAGTCGAGTTGTTTGGGAATGCAGCTCTAAATGGGAGGTAAATT
+TCTTCTAAAGCTAAATACTGGCCAGAGACCGATAGCGCACAAGTAGAGTGATCGAAAGAT
+GAAAAGCACTTTGGAAAGAGAGTTAAAAAGCACGTGAAATTGTTGAAAGGGAAGCGCTTG
+CAGCCAGACTTGCCTGTAGTTGCTCATCCGGGTTTTTACCCGGTGCACTCTTCTATAGGC
+AGGCCAGCATCAGTTTGGGCGGTTGGATAAAGGTCTCTGTCATGTACCTCTCTTCGGGGA
+GAACTTATAGGGGAGACGACATGCAACCAGCCCGGACTGAGGTCCGCGCATCTGCTAGGA
+TGCTGGCGTAATGGCTGTAAGCGGCCCGTCTTGAAACACGGACCAAGGAGTCTAACATCT
+ATGCGAGTGTTTGGGTGTCAAGCCCGAGCGCGTAATGAAAGTGAACGGAGGTGGGAACCT
+TTCGGGGTGCACCATCGACCGATCCTGATGTCTTCGGATGGATTTGAGTAAGAGCATAGC
+TGTTGGGACCCGAAAGATGGTGAACTATGCTTGAATAGGGTGAAGCCAGAGGAAACTCTG
+GTGGAGGCTCGCAGCGGTTCTGACGTGCAAATCGATCGTCAAATTTGGGCATAGGGGCGA
+AAGACTAATCGAACTATCTAGTAGCTGGTTCCTGCCGAAGTTTCCCTCAGGATAGCAGTA
+ACGTTTTCAGTTTTATGAGGTAAAGCGAATGATTAGAGGCATGGGGGTTGAAACAACCTT
+>NG_246940.1 <em>Didymella</em> acetosellae CBS 631.76 28S rRNA gene, partial sequence; from TYPE material
+TGCCCTAGTAACGGCGAGTGAAGCGGCAACAGCTCAAATTTGAAATCTGGCGTCTTTGGC
+GTCCGAGTTGTAATTTGCAGAGGGCGCTTTGGCATTGGCAGCGGTCCAAGTTCCTTGGAA
+CAGGACGTCACAGAGGGTGAGAATCCCGTACGTGGTCGCTAGCCTTTACCGTGTAAAGCC
+CCTTCGACGAGTCGAGTTGTTTGGGAATGCAGCTCTAAATGGGAGGTAAATTTCTTCTAA
+AGCTAAATACTGGCCAGAGACCGATAGCGCACAAGTAGAGTGATCGAAAGATGAAAAGCA
+CTTTGGAAAGAGAGTTAAAAAGCACGTGAAATTGTTGAAAGGGAAGCGCTTGCAGCCAGA
+CTTGCCTGTAGTTGCTCATCCGGGTTTCTACCCGGTGCACTCTTCTATAGGCAGGCCAGC
+ATCAGTTTGGGCGGTTGGATAAAGGTCTCTGTCATGTACCTCTCTTCGGGGAGAACTTAT
+AGGGGAGACGACATGCAACCAGCCTGGACTGAGGTCCGCGCATCTGCTAGGATGCTGGCG
+TAATGGCTGTAAGCGGCCCGTCTTGAAACACGGACCAAGGAGTCTAACATCTATGCGAGT
+GTTTGGGTGTCAAGCCCGAGCGCGTAATGAAAGTGAACGGAGGTGGGAACCTTTCGGGGT
+GCACCATCGACCGATCCTGATGTCTTCGGATGGATTTGAGTAAGAGCATAGCTGTTGGGA
+CCCGAAAGATGGTGAACTATGCTTGAATAGGGTGAAGCCAGAGGAAACTCTGGTGGAGGC
+TCGCAGCGGTTCTGACGTGCAAATCGATCGTCAAATTTGGGCATAGGGGCGAAAGACTAA
+TCGAACTATCTAGTAGCTGGTTCCTGCCGAAGTTTCCCTCAGGATAGCAGTAACGTTTTC
+AGTTTTATGAGGTAAAGCGAATGATTAGAGGCCTGGGGGTTGAAACAACCTT
+>NG_246939.1 <em>Didymella</em> subrosea CBS 733.79 28S rRNA gene, partial sequence; from TYPE material
+ACAGGGATTGCCCTAGTAACGGCGAGTGAAGCGGCAACAGCTCAAATTTGAAATCTGGCG
+TCTTTGGCGTCCGAGTTGTAATTTGCAGAGGGCGCTTTGGCATTGGCAGCGGTCCAAGTT
+CCTTGGAACAGGACGTCACAGAGGGTGAGAATCCCGTACGTGGTCGCTAGCCTTTACCGT
+GTAAAGCCCCTTCGACGAGTCGAGTTGTTTGGGAATGCAGCTCTAAATGGGAGGTAAATT
+TCTTCTAAAGCTAAATACTGGCCAGAGACCGATAGCGCACAAGTAGAGTGATCGAAAGAT
+GAAAAGCACTTTGGAAAGAGAGTTAAAAAGCACGTGAAATTGTTGAAAGGGAAGCGCTTG
+CAGCCAGACTTGCCTGTAGTTGCTCATCTAGGTTTCTACCTAGTGCACTCTTCTATAGGC
+AGGCCAGCATCAGTTTGGGCGGTTGGATAAAGGTCTCTGTCATGTACCTCTCTTCGGGGA
+GAACTTATAGGGGAGACGACATGCAACCAGCCTGGACTGAGGTCCGCGCATCTGCTAGGA
+TGCTGGCGTAATGGCTGTAAGCGGCCCGTCTTGAAACACGGACCAAGGAGTCTAACATCT
+ATGCGAGTGTTTGGGTGTCAAGCCCGAGCGCGTAATGAAAGTGAACGGAGGTGGGAACCT
+TTCGGGGTGCACCATCGACCGATCCTGATGTCTTCGGATGGATTTGAGTAAGAGCATAGC
+TGTTGGGACCCGAAAGATGGTGAACTATGCTTGAATAGGGTGAAGCCAGAGGAAACTCTG
+GTGGAGGCTCGCAGCGGTTCTGACGTGCAAATCGATCGTCAAATTTGGGCATAGGGGCGA
+AAGACTAATCGAACTATCTAGTAGCTGGTTCCTGCCGAAGTTTCCCTCAGGATAGCAGTA
+ACGTTTTCAGTTTTATGAGGTAAAGCGAATGATTAGAGGCCTGGGGGTTGAAACAACCTT`;
+
+  const blob = new Blob([fasta], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'hongos_50_28S_refseq.fasta';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
