@@ -1876,6 +1876,36 @@ var validateBtn = document.getElementById('validate-btn');
 var loginError = document.getElementById('login-error');
 var studentDisplay = document.getElementById('student-display');
 
+validateBtn.onclick = function() {
+  var cedula = cedulaInput.value.trim();
+  if (!cedula) { alert('Ingresa tu cédula'); return; }
+  if (cedula.length < 5) { loginError.classList.remove('hidden'); return; }
+  loginError.classList.add('hidden');
+  validateBtn.textContent = 'Validando...';
+  validateBtn.disabled = true;
+  
+  supabaseQuery('students', {
+    select: 'id,full_name,cedula',
+    eq: [{col:'cedula',val:cedula},{col:'active',val:'true'}],
+    limit: 1
+  }).then(function(data) {
+    var student = (Array.isArray(data) && data.length > 0) ? data[0] : null;
+    examState.studentCedula = cedula;
+    examState.studentName = student ? student.full_name : ('Estudiante ' + cedula);
+    examState.studentId = student ? student.id : null;
+    studentDisplay.textContent = examState.studentName + ' — C.C. ' + cedula;
+    loginContainer.classList.add('hidden');
+    showExam();
+  }).catch(function(e) {
+    console.warn('Supabase fallback:', e);
+    examState.studentCedula = cedula;
+    examState.studentName = 'Estudiante ' + cedula;
+    studentDisplay.textContent = 'Estudiante ' + cedula + ' — C.C. ' + cedula;
+    loginContainer.classList.add('hidden');
+    showExam();
+  });
+};
+
 cedulaInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') validateBtn.click(); });
 
 // === MOSTRAR EXAMEN ===
