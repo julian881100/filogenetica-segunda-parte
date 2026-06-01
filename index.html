@@ -188,20 +188,14 @@
 <section id="contexto">
   <div class="label" style="color:var(--primary)">Sección 1</div>
   <h2>Contexto <span class="t">biológico</span> para la inferencia</h2>
-  <p class="subtitle">Aquí no se repite el caso (ya lo trabajaste en la parte 1). Esto es lo que necesitas tener CLARO antes de escribir <strong>un solo comando</strong> de IQ-TREE o BEAST.</p>
 
   <div class="card">
     <h3>1.1 — El marcador: LSU (28S) rRNA</h3>
     <p>El gen nuclear <strong>28S</strong> (subunidad grande del ribosoma) es el marcador de todo el práctico. Esto tiene consecuencias directas sobre cómo eliges modelo y qué esperas del árbol:</p>
     <ul style="margin:12px 0 0 22px;line-height:1.7">
       <li><strong>Reloj molecular laxo</strong> — las regiones D1–D3 del LSU evolucionan a tasa moderada. Para BEAST vas a necesitar un <strong>reloj lognormal relajado</strong> (ucld) casi con seguridad. Un reloj estricto no se sostiene en hongos distantes.</li>
-      <li><strong>Modelo de sustitución:</strong> con 28S de hongos tan diversos (Mucoromycetes a Dothideomycetes), <strong>GTR+G+I</strong> o <strong>GTR+G</strong> son los candidatos más probables. Deja que ModelFinder (<code>-m MFP</code>) decida, pero anticipa que el parámetro de invariable sites (I) suele mejorar el ajuste en LSU por la estructura secundaria conservada.</li>
-      <li><strong>Heterogeneidad entre sitios:</strong> el 28S tiene regiones muy conservadas (centro del ribosoma) y regiones muy variables (D1–D3). Modelar con <strong>Γ</strong> (gamma) no es opcional — es obligatorio.</li>
-      <li><strong>Single-gene limit:</strong> con un solo gen ribosómico no vas a resolver relaciones profundas (por ej., la posición de Mucoromycetes respecto a los demás). No es un límite del software, es un límite <em>biológico</em> del marcador.</li>
+      <li><strong>Modelo de sustitución:</strong> con 28S de hongos tan diversos (Mucoromycetes a Dothideomycetes), <strong>GTR+G+I</strong> o <strong>GTR+G</strong> son los candidatos más probables. Deja que ModelFinder (<code>-m MFP</code>) decida.</li>
     </ul>
-    <div class="quote" style="margin-top:12px">
-      <strong>Implicancia directa en comandos:</strong> cuando corras IQ-TREE, <code>--seqtype DNA</code> se detecta solo. Pero cuando configures BEAUti, <strong>no</strong> eliges un modelo de codones — es un marcador no codificante — y tienes que decidir si particionas o no. Con 50 secuencias de ~850 bp, una sola partición es suficiente.
-    </div>
   </div>
 
   <div class="card">
