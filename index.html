@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>2ª Parte · Pipeline filogenético y comandos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     :root{
@@ -157,11 +160,93 @@
     .step-box .step-hint{font-size:13px;color:var(--amber);margin-top:6px;font-style:italic}
 
     footer{padding:40px var(--px);text-align:center;color:var(--muted);font-size:12px;border-top:1px solid var(--border)}
+
+    /* === EXAMEN: OVERLAY Y LOGIN === */
+    .exam-overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;background:rgba(3,7,10,0.92);backdrop-filter:blur(20px);display:flex;justify-content:center;align-items:center;padding:20px}
+    .exam-overlay-card{max-width:500px;padding:40px;text-align:center;border:1px solid rgba(255,91,96,0.2)}
+    .exam-overlay-card h2{color:var(--red);font-weight:800;font-size:1.4rem;margin:20px 0 12px}
+    .exam-overlay-card p{color:var(--muted);font-size:0.95rem;margin-bottom:28px}
+    .exam-login{min-height:100vh;width:100%;padding:20px}
+    .exam-auth-card{width:100%;max-width:480px;padding:40px;position:relative;z-index:1}
+    .exam-auth-header{text-align:center;margin-bottom:30px}
+    .exam-auth-header h1{font-size:2rem;font-weight:800;background:linear-gradient(135deg,#fff 30%,var(--primary) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .exam-auth-subtitle{color:var(--muted);font-size:0.95rem;margin-top:4px}
+    .exam-alert-box{background:rgba(64,158,255,0.08);border:1px solid rgba(64,158,255,0.15);color:#cce3ff;padding:16px;border-radius:var(--radius-md);margin-bottom:24px;font-size:0.88rem}
+    .exam-alert-box ul{list-style:none;margin-top:8px}
+    .exam-alert-box li{margin-bottom:6px;padding-left:14px;position:relative}
+    .exam-alert-box li::before{content:"•";color:var(--blue);position:absolute;left:0}
+    .exam-input-group{margin-bottom:24px}
+    .exam-input-group label{display:block;font-size:0.85rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:8px}
+    .exam-input-group input{width:100%;background:rgba(0,0,0,0.3);border:1px solid var(--border);color:var(--text);padding:14px 16px;border-radius:var(--radius-md);font-size:1rem;font-family:var(--font-sans);transition:var(--transition)}
+    .exam-input-group input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 2px rgba(40,213,177,0.15);background:rgba(0,0,0,0.5)}
+    .exam-error-text{color:var(--red);font-size:0.85rem;font-weight:500;margin-bottom:12px;text-align:center}
+    .exam-auth-footer{text-align:center;margin-top:30px;font-size:0.75rem;color:rgba(255,255,255,0.2)}
+    .exam-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font-sans);font-size:0.95rem;font-weight:600;padding:10px 20px;border-radius:var(--radius-md);border:1px solid transparent;cursor:pointer;transition:var(--transition);outline:none}
+    .exam-btn-primary{background:linear-gradient(135deg,var(--primary) 0%,#17bfa0 100%);color:#060d11;padding:14px 28px;font-size:1.1rem}
+    .exam-btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(40,213,177,0.35)}
+    .exam-btn-block{width:100%}
+    .exam-header-bar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:10px 24px;margin-bottom:16px;border-radius:var(--radius-md);font-size:14px}
+    .exam-timer{font-family:var(--font-mono);font-weight:700;color:var(--primary);font-size:18px}
+    .exam-warnings{color:var(--red);font-weight:600}
+
+    .hidden{display:none!important}
+    .flex-center{display:flex;justify-content:center;align-items:center}
+    .glass{background:var(--panel-bg);backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:0 8px 32px 0 rgba(0,0,0,0.45)}
+
+    @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    .animate-slide-up{animation:slideUp 0.4s cubic-bezier(0.16,1,0.3,1) forwards}
+
+    /* Ocultar topbar inicialmente */
+    .topbar.hidden{display:none!important}
   </style>
 </head>
 <body>
 
-<header class="topbar">
+<!-- OVERLAY PANTALLA COMPLETA -->
+<div id="fullscreen-overlay" class="exam-overlay hidden">
+  <div class="exam-overlay-card glass">
+    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ff5b60" stroke-width="2"><path d="M3 12.5a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+    <h2>PANTALLA COMPLETA REQUERIDA</h2>
+    <p>Este parcial requiere pantalla completa. Al salir, se reporta una advertencia.</p>
+    <button id="enter-fullscreen-btn" class="exam-btn exam-btn-primary">Activar Pantalla Completa</button>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div id="login-container" class="exam-login flex-center">
+  <div class="exam-auth-card glass animate-slide-up">
+    <div class="exam-auth-header">
+      <h1>Filogenética Molecular</h1>
+      <p class="exam-auth-subtitle">Evaluación Parcial · Segunda Parte</p>
+    </div>
+    <div class="exam-alert-box">
+      <p>Condiciones del Examen:</p>
+      <ul>
+        <li>Pantalla completa obligatoria</li>
+        <li>2 horas para completar</li>
+        <li>Monitoreo de cambio de pestañas</li>
+      </ul>
+    </div>
+    <div class="exam-input-group">
+      <label>Cédula del Estudiante</label>
+      <input type="text" id="student-cedula" placeholder="Ingresa tu número de cédula" autocomplete="off">
+    </div>
+    <p id="login-error" class="exam-error-text hidden">Cédula no registrada o inactiva.</p>
+    <button id="validate-btn" class="exam-btn exam-btn-primary exam-btn-block">Validar y Comenzar</button>
+    <div class="exam-auth-footer">
+      Institución Universitaria Colegio Mayor de Antioquia · Bioinformática
+    </div>
+  </div>
+</div>
+
+<!-- CONTENIDO PRINCIPAL (oculto hasta login) -->
+<div id="exam-header" class="exam-header-bar glass hidden">
+  <span id="student-display">Cargando...</span>
+  <span id="exam-timer" class="exam-timer">02:00:00</span>
+  <span id="warnings-display" class="exam-warnings">Alertas: 0</span>
+</div>
+
+<header class="topbar hidden">
   <div class="crumb">2ª Parte · Pipeline & Comandos</div>
   <nav>
     <a href="#contexto">Contexto</a>
@@ -251,7 +336,7 @@
     <h3>1.3 — Sesgos y limitaciones que anticipar en el informe</h3>
     <ul style="margin:12px 0 0 22px;line-height:1.7">
       <li><strong>Outgroup lejano:</strong> si enraizas con Sordariomycetes o con Eurotiomycetes, el largo de rama del outgroup puede atraer raíces largas (LBA, <em>long-branch attraction</em>) y distorsionar la topología dentro de Didymellaceae.</li>
-      <li><strong>Gen único:</strong> con un solo locus concatenado, no puedes medir discordancia entre genes. Cualquier conclusión sobre monofilia de H₁ es tentativa, necesitas al menos ITS + TEF1 + tubulina para un estudio filogenético robusto de Didymellaceae.</li>
+      <li><strong>Gen único:</strong> con un solo locus concatenado, no puedes medir discordancia entre genes. Cualquier conclusión sobre monofilia de H₁ es tentativa.</li>
       <li><strong>Soporte bootstrap vs. PP:</strong> IQ-TREE da soportes bootstrap y SH-aLRT. BEAST da probabilidades posteriores (PP). No son lo mismo. bootstrap ≥ 95% o PP ≥ 0.95 son umbrales de referencia, pero en un solo gen los soportes altos pueden ser artefacto si el modelo está mal especificado.</li>
     </ul>
   </div>
@@ -1684,6 +1769,152 @@ ACGTTTTCAGTTTTATGAGGTAAAGCGAATGATTAGAGGCCTGGGGGTTGAAACAACCTT`;
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
+</script>
+
+<!-- SUPABASE + EXAMEN LOGIC -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// === CONFIG ===
+const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
+const SUPABASE_KEY = 'YOUR_ANON_KEY';
+const EXAM_DURATION = 2 * 60 * 60; // 2 horas
+
+let supabase = null;
+try { supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) { console.warn('Supabase no configurado, usando modo local'); }
+
+let examState = {
+  studentCedula: '',
+  studentName: '',
+  timeLeft: EXAM_DURATION,
+  warnings: 0,
+  timerInterval: null,
+  started: false
+};
+
+// === PANTALLA COMPLETA ===
+const fsOverlay = document.getElementById('fullscreen-overlay');
+const fsBtn = document.getElementById('enter-fullscreen-btn');
+const loginContainer = document.getElementById('login-container');
+const examHeader = document.getElementById('exam-header');
+const topbar = document.querySelector('.topbar');
+
+function enterFullscreen() {
+  const el = document.documentElement;
+  if (el.requestFullscreen) el.requestFullscreen();
+  else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+  else if (el.msRequestFullscreen) el.msRequestFullscreen();
+}
+fsBtn.addEventListener('click', () => { enterFullscreen(); });
+
+document.addEventListener('fullscreenchange', () => {
+  if (document.fullscreenElement) {
+    fsOverlay.classList.add('hidden');
+    if (examState.started) showExam();
+    else loginContainer.classList.remove('hidden');
+  } else {
+    if (examState.started) {
+      fsOverlay.classList.remove('hidden');
+      examState.warnings++;
+      updateWarnings();
+    }
+  }
+});
+
+// === LOGIN ===
+const cedulaInput = document.getElementById('student-cedula');
+const validateBtn = document.getElementById('validate-btn');
+const loginError = document.getElementById('login-error');
+const studentDisplay = document.getElementById('student-display');
+
+async function validateStudent(cedula) {
+  if (supabase) {
+    try {
+      const { data, error } = await supabase.from('students').select('*').eq('cedula', cedula.trim()).eq('active', true).single();
+      if (!error && data) return { ok: true, name: data.full_name || data.name || cedula };
+    } catch(e) { console.warn('Supabase fallback'); }
+  }
+  // Modo local
+  if (cedula.length >= 5) return { ok: true, name: 'Estudiante ' + cedula };
+  return { ok: false };
+}
+
+validateBtn.addEventListener('click', async () => {
+  const cedula = cedulaInput.value.trim();
+  if (!cedula) return;
+  validateBtn.textContent = 'Validando...';
+  validateBtn.disabled = true;
+  const result = await validateStudent(cedula);
+  if (result.ok) {
+    examState.studentCedula = cedula;
+    examState.studentName = result.name;
+    studentDisplay.textContent = 'C.C. ' + cedula;
+    loginContainer.classList.add('hidden');
+    enterFullscreen();
+  } else {
+    loginError.classList.remove('hidden');
+    validateBtn.textContent = 'Validar y Comenzar';
+    validateBtn.disabled = false;
+  }
+});
+
+cedulaInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') validateBtn.click(); });
+
+// === MOSTRAR EXAMEN ===
+function showExam() {
+  examHeader.classList.remove('hidden');
+  topbar.classList.remove('hidden');
+  examState.started = true;
+  startTimer();
+  saveAttempt();
+}
+
+// === TIMER ===
+const timerEl = document.getElementById('exam-timer');
+function startTimer() {
+  examState.timerInterval = setInterval(() => {
+    examState.timeLeft--;
+    const h = Math.floor(examState.timeLeft / 3600);
+    const m = Math.floor((examState.timeLeft % 3600) / 60);
+    const s = examState.timeLeft % 60;
+    timerEl.textContent = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+    if (examState.timeLeft <= 300) timerEl.style.color = 'var(--red)';
+    if (examState.timeLeft <= 0) { clearInterval(examState.timerInterval); alert('Tiempo agotado'); }
+  }, 1000);
+}
+
+// === ADVERTENCIAS ===
+const warningsEl = document.getElementById('warnings-display');
+function updateWarnings() { warningsEl.textContent = 'Alertas: ' + examState.warnings; }
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && examState.started) { examState.warnings++; updateWarnings(); }
+});
+
+// === GUARDAR INTENTO ===
+async function saveAttempt() {
+  if (!supabase) return;
+  try {
+    const { data } = await supabase.from('quiz_attempts').insert({
+      cedula: examState.studentCedula,
+      quiz_type: 'segunda_parte',
+      started_at: new Date().toISOString()
+    }).select('id').single();
+    if (data) examState.attemptId = data.id;
+  } catch(e) { console.warn('No se pudo guardar intento'); }
+}
+
+async function submitResults() {
+  if (supabase && examState.attemptId) {
+    await supabase.from('quiz_attempts').update({
+      finished_at: new Date().toISOString(),
+      warnings: examState.warnings,
+      time_used: EXAM_DURATION - examState.timeLeft
+    }).eq('id', examState.attemptId);
+  }
+}
+
+// === INICIO ===
+fsOverlay.classList.remove('hidden');
 </script>
 </body>
 </html>
