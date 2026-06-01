@@ -1876,41 +1876,7 @@ var validateBtn = document.getElementById('validate-btn');
 var loginError = document.getElementById('login-error');
 var studentDisplay = document.getElementById('student-display');
 
-async function validateStudent(cedula) {
-  try {
-    var data = await supabaseQuery('students', {
-      select: 'id,full_name,cedula',
-      eq: [{col:'cedula',val:cedula.trim()},{col:'active',val:'true'}],
-      limit: 1
-    });
-    if (Array.isArray(data) && data.length > 0) return { ok: true, student: data[0] };
-  } catch(e) { console.warn('Error Supabase:', e.message); }
-  // Fallback: acepta cédula de 5+ dígitos
-  if (cedula.length >= 5) return { ok: true, student: { cedula: cedula, full_name: 'Estudiante ' + cedula } };
-  return { ok: false };
-}
-
-validateBtn.addEventListener('click', async () => {
-  const cedula = cedulaInput.value.trim();
-  if (!cedula) return;
-  validateBtn.textContent = 'Validando...';
-  validateBtn.disabled = true;
-  const result = await validateStudent(cedula);
-  if (result.ok) {
-    examState.studentCedula = cedula;
-    examState.studentName = result.student.full_name;
-    examState.studentId = result.student.id;
-    studentDisplay.textContent = examState.studentName + ' — C.C. ' + cedula;
-    loginContainer.classList.add('hidden');
-    showExam();
-  } else {
-    loginError.classList.remove('hidden');
-    validateBtn.textContent = 'Validar y Comenzar';
-    validateBtn.disabled = false;
-  }
-});
-
-cedulaInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') validateBtn.click(); });
+cedulaInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') validateBtn.click(); });
 
 // === MOSTRAR EXAMEN ===
 function showExam() {
