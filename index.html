@@ -569,30 +569,27 @@
     <p class="small">Todas las líneas de comando del pipeline están <strong>mezcladas abajo</strong>. No hay agrupación por programa ni por paso. Algunas líneas son <strong>señuelos</strong> (flags incorrectos, archivos equivocados, comandos incompletos). Tu tarea: (1) identificar qué líneas pertenecen a cada tarjeta, (2) ordenarlas, (3) descartar los señuelos, y (4) escribir el pipeline completo en la sección de Reconstrucción final.</p>
 
     <div class="warning" style="margin:16px 0">
-      <strong>El archivo de partida es <code>hongos_50_28S_refseq.fasta</code>.</strong> El pipeline termina con los árboles listos para visualizar en FigTree. Cada archivo intermedio se genera en un paso y se consume en el siguiente. Hay 25 líneas en total — no todas son correctas.
+      <strong>El archivo de partida es <code>hongos_50_28S_refseq.fasta</code>.</strong> El pipeline termina con los árboles listos para visualizar en FigTree. Cada archivo intermedio se genera en un paso y se consume en el siguiente. Hay 22 líneas en total — no todas son correctas.
     </div>
 
     <ol style="margin:16px 0 0 22px;color:var(--muted);font-size:15px;line-height:2.2" id="cmd-revoltijo">
-      <li><code>beast -threads 4 hongos_beast.xml</code></li>
+      <li><code>head -4 hongos_clean.fasta</code></li>
       <li><code>ls -lh hongos_beast.*</code></li>
-      <li><code>grep -c "^>" hongos_clean.fasta</code></li>
+      <li><code>grep -c "^>" hongos_aln.fasta</code></li>
       <li><code>treeannotator -heights mean hongos_beast.trees hongos_consenso.tree</code></li>
       <li><code>iqtree2 -s hongos_trimal.fasta -m MFP -nt AUTO</code></li>
       <li><code>beast -seed 12345 hongos_beast.xml</code></li>
       <li><code>head -30 hongos_aln.fasta</code></li>
-      <li><code>grep -c "^>" hongos_aln.fasta</code></li>
-      <li><code>trimal -in hongos_aln.fasta -out hongos_trimal.fasta -automated1</code></li>
       <li><code>iqtree2 -s hongos_trimal.fasta -m MFP+MERGE -nt AUTO</code></li>
+      <li><code>trimal -in hongos_aln.fasta -out hongos_trimal.fasta -automated1</code></li>
       <li><code>sed 's/ /_/g' hongos_50_28S_refseq.fasta | sed 's/[:,;()]/_/g' > hongos_clean.fasta</code></li>
-      <li><code>head -4 hongos_clean.fasta</code></li>
       <li><code>grep -c "^>" hongos_50_28S_refseq.fasta</code></li>
       <li><code>mafft --auto hongos_clean.fasta > hongos_aln.fasta</code></li>
-      <li><code>head -20 hongos_trimal.fasta</code></li>
       <li><code>grep -c "^>" hongos_trimal.fasta</code></li>
       <li><code>cat hongos_trimal.fasta.iqtree | grep -A 5 "Best-fit model"</code></li>
       <li><code>ls -lh hongos_trimal.fasta.*</code></li>
-      <li><code>grep -c "^>" hongos_trimal.fasta</code></li>
       <li><code>iqtree2 -s hongos_trimal.fasta -m MFP -bb 1000 -alrt 1000 -o Leptosphaerulina_sisyrinchiicola,Leptosphaerulina_obtusispora -nt AUTO</code></li>
+      <li><code>beast -threads 4 hongos_beast.xml</code></li>
       <li><code>treeannotator -burnin 1000 -heights mean hongos_beast.trees hongos_consenso.tree</code></li>
       <li><code>ls -lh hongos_consenso.tree</code></li>
       <li><code>trimal -in hongos_aln.fasta -out hongos_trimal.fasta -gt 0.70 -cons 50</code></li>
@@ -609,15 +606,8 @@
 <!-- ============================================================ -->
 <section class="s-amber" id="comandos">
   <div class="label" style="color:var(--amber)">Sección 4</div>
-  <h2>Redactá tus <span class="a">comandos</span></h2>
+  <h2>Redacta tus <span class="a">comandos</span></h2>
   <p class="subtitle">Para cada paso, escribe la línea exacta que ejecutarías en la terminal de Ubuntu/WSL. Usa el archivo <code style="color:var(--primary)">hongos_50_28S_refseq.fasta</code> como punto de partida.</p>
-
-  <div class="worksheet card">
-    <h3>Paso 1 — Limpieza de cabeceras FASTA</h3>
-    <p class="small">Las cabeceras tienen espacios, caracteres especiales y duplicados parciales. Necesitas nombres cortos sin espacios para que MAFFT, IQ-TREE y BEAST no se quejen. Ejemplo: <code>NG_246939.1_Didymella_subrosea</code></p>
-    <label>Comando:</label>
-    <textarea class="cmd-area" rows="3" placeholder="sed o awk para limpiar cabeceras…"></textarea>
-  </div>
 
   <div class="worksheet card">
     <h3>Paso 2 — Alineamiento con MAFFT</h3>
