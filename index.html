@@ -51,12 +51,12 @@
     h1 .t{color:var(--primary)}h1 .a{color:var(--amber)}h1 .b{color:var(--blue)}h1 .p{color:var(--purple)}h1 .r{color:var(--pink)}
     h2{font-size:clamp(24px,3vw,38px);font-weight:700;margin-bottom:16px;letter-spacing:-0.01em}
     h2 .t{color:var(--primary)}h2 .a{color:var(--amber)}h2 .b{color:var(--blue)}h2 .p{color:var(--purple)}
-    h3{font-size:19px;margin:20px 0 10px;font-weight:700}
-    .subtitle{font-size:17px;color:var(--muted);max-width:800px;margin-bottom:20px}
-    p,li{font-size:16px}
-    .small{font-size:13px;color:var(--muted)}
-    code{background:rgba(40,213,177,0.08);border:1px solid rgba(40,213,177,0.12);border-radius:4px;padding:2px 6px;font-family:var(--font-mono);font-size:12px;color:var(--primary)}
-    code.frag{display:inline-block;padding:6px 11px;background:rgba(13,22,28,0.9);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;line-height:1;white-space:nowrap;transition:var(--transition)}
+    h3{font-size:21px;margin:20px 0 10px;font-weight:700}
+    .subtitle{font-size:19px;color:var(--muted);max-width:800px;margin-bottom:20px}
+    p,li{font-size:17px}
+    .small{font-size:14px;color:var(--muted)}
+    code{background:rgba(40,213,177,0.08);border:1px solid rgba(40,213,177,0.12);border-radius:4px;padding:3px 7px;font-family:var(--font-mono);font-size:13px;color:var(--primary)}
+    code.frag{display:inline-block;padding:7px 12px;background:rgba(13,22,28,0.9);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;line-height:1;white-space:nowrap;transition:var(--transition)}
     code.frag:hover{border-color:var(--primary);background:rgba(40,213,177,0.06)}
 
     .pill{display:inline-block;padding:4px 11px;border-radius:999px;font-size:11px;font-weight:600;margin:2px 4px 2px 0}
@@ -115,15 +115,15 @@
     .order-slot{display:flex;align-items:center;gap:12px;margin:10px 0;padding:12px;background:rgba(13,22,28,0.6);border:1px solid var(--border);border-radius:var(--radius-md);transition:var(--transition)}
     .order-slot:hover{border-color:rgba(255,255,255,0.12)}
     .order-slot .num{width:32px;height:32px;border-radius:50%;background:rgba(40,213,177,0.12);color:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0}
-    .order-slot input{flex:1;background:transparent;border:none;border-bottom:1px dashed rgba(255,255,255,0.08);color:var(--text);font-size:15px;padding:6px 4px;font-family:inherit}
+    .order-slot input{flex:1;background:transparent;border:none;border-bottom:1px dashed rgba(255,255,255,0.08);color:var(--text);font-size:16px;padding:6px 4px;font-family:inherit}
     .order-slot input:focus{outline:none;border-bottom-color:var(--primary)}
 
-    .hint-table{width:100%;border-collapse:collapse;font-size:14px;margin:16px 0}
+    .hint-table{width:100%;border-collapse:collapse;font-size:15px;margin:16px 0}
     .hint-table th,.hint-table td{padding:12px 14px;border:1px solid var(--border);text-align:left;vertical-align:top}
-    .hint-table th{background:rgba(20,32,40,0.7);color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
-    .hint-table code{color:var(--amber);font-size:12px}
+    .hint-table th{background:rgba(20,32,40,0.7);color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+    .hint-table code{color:var(--amber);font-size:13px}
 
-    .bio-table{width:100%;border-collapse:collapse;font-size:14px;margin:16px 0}
+    .bio-table{width:100%;border-collapse:collapse;font-size:15px;margin:16px 0}
     .bio-table th,.bio-table td{padding:10px 12px;border:1px solid var(--border);text-align:left;vertical-align:top}
     .bio-table th{background:rgba(20,32,40,0.7);color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
     .bio-table .row-h1{background:rgba(40,213,177,0.03)}
@@ -152,9 +152,9 @@
       padding:16px 18px;margin:12px 0;transition:var(--transition)
     }
     .step-box:hover{border-color:rgba(255,255,255,0.1)}
-    .step-box .step-title{font-weight:700;color:var(--primary);font-size:14px;margin-bottom:6px}
-    .step-box .step-desc{font-size:13px;color:var(--muted)}
-    .step-box .step-hint{font-size:12px;color:var(--amber);margin-top:6px;font-style:italic}
+    .step-box .step-title{font-weight:700;color:var(--primary);font-size:16px;margin-bottom:6px}
+    .step-box .step-desc{font-size:14px;color:var(--muted)}
+    .step-box .step-hint{font-size:13px;color:var(--amber);margin-top:6px;font-style:italic}
 
     footer{padding:40px var(--px);text-align:center;color:var(--muted);font-size:12px;border-top:1px solid var(--border)}
   </style>
@@ -615,7 +615,7 @@
       <strong>El archivo de partida es <code>hongos_50_28S_refseq.fasta</code>.</strong> El pipeline termina con los árboles listos para visualizar en FigTree. Cada archivo intermedio se genera en un paso y se consume en el siguiente. Hay 25 líneas en total — no todas son correctas.
     </div>
 
-    <ol style="margin:16px 0 0 22px;color:var(--muted);font-size:13px;line-height:2.2" id="cmd-revoltijo">
+    <ol style="margin:16px 0 0 22px;color:var(--muted);font-size:15px;line-height:2.2" id="cmd-revoltijo">
       <li><code>beast -threads 4 hongos_beast.xml</code></li>
       <li><code>ls -lh hongos_beast.*</code></li>
       <li><code>grep -c "^>" hongos_clean.fasta</code></li>
