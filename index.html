@@ -470,23 +470,14 @@
   </div>
 
   <div class="card">
-    <h3>📥 Descargar secuencias</h3>
+    <h3>Descargar secuencias</h3>
     <p>Archivo de trabajo: <code style="color:var(--primary)">hongos_50_28S_refseq.fasta</code> — 50 secuencias parciales del gen 28S rRNA (LSU), ~850 pb cada una.</p>
-    <p style="margin:10px 0">Hacé clic en el botón de abajo para descargar el archivo FASTA completo listo para usar en MAFFT, IQ-TREE, BEAST 2, etc.</p>
+    <p style="margin:10px 0">Haz clic en el botón de abajo para descargar el archivo FASTA completo listo para usar en MAFFT, IQ-TREE, BEAST 2, etc.</p>
     <div style="text-align:center;margin:16px 0">
       <button onclick="descargarFASTA()" style="background:var(--primary);color:#000;border:none;padding:14px 32px;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;transition:transform .12s,box-shadow .12s" onmouseover="this.style.transform='scale(1.03)';this.style.boxShadow='0 6px 24px rgba(40,213,177,.35)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
          Descargar hongos_50_28S_refseq.fasta
       </button>
     </div>
-    <details style="margin-top:12px;font-size:13px;color:var(--muted)">
-      <summary style="cursor:pointer;font-weight:600">Resumen del archivo</summary>
-      <ul style="margin:8px 0 0 18px;line-height:1.6">
-        <li><strong>50 secuencias</strong> — 16 H₁ ingroup + 2 outgroup cercano + 12 Pleosporales lejanos + 7 Sordariomycetes + 7 Eurotiomycetes cueva + 1 Leotiomycetes + 4 contaminantes Mucoromycetes + 1 Leotiomycetes cueva</li>
-        <li><strong>Marcador:</strong> LSU (28S) rRNA — gen nuclear ribosómico, subunidad grande</li>
-        <li><strong>Origen:</strong> Proyecto Kunming–<em>Aquilaria</em> — aislamientos de madera, bambú y suelo de cueva</li>
-        <li><strong>Formato:</strong> FASTA con cabeceras NG_* (GenBank TYPE material)</li>
-      </ul>
-    </details>
   </div>
 </section>
 
@@ -519,15 +510,6 @@
         <div style="font-size:9px;color:var(--muted);margin-top:1px">Recorte de columnas</div>
         <div style="font-size:10px;color:var(--amber);margin-top:6px">Entra: alineamiento</div>
         <div style="font-size:10px;color:var(--amber)">Sale: recortado</div>
-      </div>
-      <!-- Tarjeta C: FASTA/Limpieza (posición real: 1) -->
-      <div style="background:var(--panel-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:10px;padding:14px 16px;text-align:center;min-width:115px">
-        <div style="font-size:12px;font-weight:700;color:var(--primary)">Tarjeta C</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px">FASTA crudo</div>
-        <div style="font-size:9px;color:var(--amber);margin-top:4px">sed · awk</div>
-        <div style="font-size:9px;color:var(--muted);margin-top:1px">Limpieza de cabeceras</div>
-        <div style="font-size:10px;color:var(--amber);margin-top:6px">Entra: refseq.fasta</div>
-        <div style="font-size:10px;color:var(--amber)">Sale: clean.fasta</div>
       </div>
       <!-- Tarjeta D: MAFFT (posición real: 2) -->
       <div style="background:var(--panel-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--amber);border-radius:10px;padding:14px 16px;text-align:center;min-width:115px">
@@ -570,17 +552,15 @@
 
     <!-- Grilla de orden -->
     <h4 style="margin-top:10px">Asigna el orden correcto</h4>
-    <p class="small">Escribí la letra de la tarjeta (A–G) en el casillero que corresponda, del paso 1 al 7. La tarjeta C (FASTA crudo) ya está puesta como pista — es el punto de partida del pipeline.</p>
+    <p class="small">Escribe la letra de la tarjeta (A, B, D, E, F, G) en el casillero que corresponda, del paso 1 al 6. La limpieza FASTA con sed no tiene tarjeta propia, es el punto de partida.</p>
     <div class="order-slots">
-      <div class="order-slot"><span class="num">1</span><span style="flex:1;font-size:15px;padding:6px 4px;color:var(--primary)">Tarjeta C — FASTA crudo / limpieza</span></div>
-      <div class="order-slot"><span class="num">2</span><input placeholder="Tarjeta ___ — ¿qué programa y por qué?"></div>
+      <div class="order-slot"><span class="num">1</span><input placeholder="Tarjeta ___ — ¿qué programa y por qué?"></div>
+      <div class="order-slot"><span class="num">2</span><input placeholder="Tarjeta ___ — …"></div>
       <div class="order-slot"><span class="num">3</span><input placeholder="Tarjeta ___ — …"></div>
       <div class="order-slot"><span class="num">4</span><input placeholder="Tarjeta ___ — …"></div>
-      <div class="order-slot"><span class="num">5</span><input placeholder="Tarjeta ___ — … (pista: acá hay bifurcación ML ↔ bayesiano)"></div>
+      <div class="order-slot"><span class="num">5</span><input placeholder="Tarjeta ___ — …"></div>
       <div class="order-slot"><span class="num">6</span><input placeholder="Tarjeta ___ — …"></div>
-      <div class="order-slot"><span class="num">7</span><input placeholder="Tarjeta ___ — …"></div>
     </div>
-    <p class="small" style="margin-top:8px">Después de ordenar, dibuja las flechas entre tarjetas. ¿Dónde se bifurca el pipeline? ¿Qué paso consume el mismo archivo de entrada que otro?</p>
   </div>
 
   <!-- ===== COMANDOS LÍNEA POR LÍNEA (REVOLTIJO TOTAL) ===== -->
@@ -620,7 +600,7 @@
       <li><code>mafft linsi hongos_clean.fasta > hongos_aln.fasta</code></li>
     </ol>
 
-    <p class="small" style="margin-top:12px">Pista: el pipeline tiene 7 pasos (tarjetas C, D, B, F, G, A, E). La tarjeta F (IQ‑TREE) corre <strong>dos veces</strong> — primero el modelo, después el árbol. La tarjeta E (FigTree) no tiene comando de terminal. Cuenta cuántas líneas útiles deberían quedar si descartas los señuelos.</p>
+    <p class="small" style="margin-top:12px">Pista: el pipeline tiene 6 pasos (tarjetas D, B, F, G, A, E). La limpieza FASTA con sed va antes, sin tarjeta. La tarjeta F (IQ‑TREE) corre <strong>dos veces</strong> — primero el modelo, después el árbol. La tarjeta E (FigTree) no tiene comando de terminal. Cuenta cuántas líneas útiles deberían quedar si descartas los señuelos.</p>
   </div>
 </section>
 
@@ -635,7 +615,7 @@
   <div class="worksheet card">
     <h3>Paso 1 — Limpieza de cabeceras FASTA</h3>
     <p class="small">Las cabeceras tienen espacios, caracteres especiales y duplicados parciales. Necesitas nombres cortos sin espacios para que MAFFT, IQ-TREE y BEAST no se quejen. Ejemplo: <code>NG_246939.1_Didymella_subrosea</code></p>
-    <label>Comando (sed, awk, o seqkit):</label>
+    <label>Comando:</label>
     <textarea class="cmd-area" rows="3" placeholder="sed o awk para limpiar cabeceras…"></textarea>
   </div>
 
@@ -671,7 +651,7 @@
     <h3>Paso 5 — BEAUti: configuración del XML</h3>
     <p class="small">Aquí no se escribe un comando de terminal, pero describe exactamente qué configurarías en BEAUti (o en el script BDSKY si usas modo texto):</p>
     <label>Configuración de BEAUti (describe cada pestaña):</label>
-    <textarea class="cmd-area" rows="5" placeholder="1. Partitions: cargar hongos_trimal.fasta, una sola partición, modelo GTR+G (o el que haya elegido ModelFinder)&#10;2. Taxon sets: definir 'ingroup' (16 accesiones H₁) y 'outgroup' (<em>Leptosphaerulina</em> spp.)&#10;3. Site model: GTR+G, 4 categorías gamma, estimar frecuencias&#10;4. Clock model: Relaxed lognormal (ucld)&#10;5. Prior: Yule process o Birth-Death&#10;6. MCMC: 10⁷ generaciones, sample cada 1000, pre-burnin 0 (se descarta después)&#10;7. Guardar XML como hongos_beast.xml"></textarea>
+    <textarea class="cmd-area" rows="5" placeholder="1. Partitions: cargar hongos_trimal.fasta, una sola partición&#10;2. Taxon sets: definir 'ingroup' (16 accesiones H₁) y 'outgroup'&#10;3. Site model: modelo de sustitución nucleotídica&#10;4. Clock model&#10;5. Prior: Yule process&#10;6. MCMC&#10;7. Guardar XML como hongos_beast.xml"></textarea>
   </div>
 
   <div class="worksheet card">
